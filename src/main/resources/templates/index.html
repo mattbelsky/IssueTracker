@@ -3,12 +3,14 @@
     <head lang="en">
         <meta charset="UTF-8"/>
         <title>Bug Tracker</title>
-	<link rel="stylesheet" href="/main.css" />
+        <!-- Need to use path /main.css when running with Gradle -->
+        <!-- <link rel="stylesheet" href="/main.css" /> -->
     </head>
     <body>
-	    <div id="app"></div>
+        <div id="app"></div>
         <!-- Why is the script's path not relative to this html file (i.e. ../static/built/bundle.js)?
          It only works this way. -->
-    	<script src="built/bundle.js"></script>
+        <!-- Need to use path built/bundle.js when running with Gradle -->
+    	<script src="../static/built/bundle.js"></script>
     </body>
 </html>
