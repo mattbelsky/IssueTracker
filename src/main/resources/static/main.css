@@ -44,8 +44,9 @@ body {
   margin-left: 300px;
   transition: margin-left 0.3s;
 }
-#content {
+#main-content {
   margin-top: 35px; /* topbar-height + topbar-padding * 2 */
+  border: 1px solid blue;
 }
 #top-bar {
   position: fixed;
@@ -81,21 +82,16 @@ body {
   background: white;
   width: 300px;
   float: left;
-  border-right: 1px solid black;
-}
-.person-summary-role {
-  position: absolute;
-  text-align: right;
-  right: 7%;
+  border: 1px solid black;
 }
 #person-summary-list {
-  position: absolute;
+  display: none;
+}
+.project {
   display: none;
 }
 .issue {
   border: 1px solid black;
-  float: left;
-  width: 700px;
   min-width: 500px;
   padding: 0 1em 1em 1em;
 }
@@ -104,6 +100,9 @@ body {
   font-size: 3em;
   font-weight: bold;
   color: grey;
+}
+.close {
+  float: right;
 }
 #login {
   width: 500px;

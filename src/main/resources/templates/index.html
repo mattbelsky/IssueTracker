@@ -7,10 +7,11 @@
         <!-- <link rel="stylesheet" href="/main.css" /> -->
     </head>
     <body>
+        <noscript>JavaScript must be enabled to run this application.</noscript>
         <div id="app"></div>
-        <!-- Why is the script's path not relative to this html file (i.e. ../static/built/bundle.js)?
-         It only works this way. -->
-        <!-- Need to use path built/bundle.js when running with Gradle -->
-    	<script src="../static/built/bundle.js"></script>
+        <!-- Need to use path built/bundle.js when running with Gradle.-->
+        <!-- Use simply "bundle.js" when running with webpack-dev-server. Otherwise, it will be
+        called from localhost:8080/<path>/bundle.js, and return an error.-->
+    	<script src="built/bundle.js"></script>
     </body>
 </html>
