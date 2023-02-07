@@ -2,11 +2,11 @@ package io.github.mattbelsky.issuetracker.repository;
 
 import io.github.mattbelsky.issuetracker.model.Issue;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.util.List;
 
-public interface IssueRepository extends CrudRepository<Issue, Integer> {
+public interface IssueRepository extends PagingAndSortingRepository<Issue, Integer> {
 
     String FIND_OVERDUE = "SELECT * FROM issues " +
             "WHERE DATE(NOW()) > target_resolution_date " +

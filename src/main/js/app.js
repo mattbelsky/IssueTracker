@@ -4,7 +4,7 @@ import '../resources/static/main.css';
 
 // const { useState, useEffect } = React; // necessary in Codepen, otherwise can use import statement
 
-const Close = (props) => <span className='close' id={props.id} 
+const Close = (props) => <span className='close' id={props.id}
                                onClick={props.onClick}>X</span>;
 
 /******************** PROJECTS ********************/
@@ -18,7 +18,7 @@ const ProjectSummary = (props) => {
       <div>{props.numIssues} {props.numIssues == 1 ? 'issue' : 'issues'} pending</div>
       <div className={assigned}>{assigned}</div>
       <a href='javascript:;' id='view-project'
-        onClick={() => props.onClick('view-project')}>
+        onClick={() => props.onClick(props.projectName + 'view-project')}>
         view project
       </a>
       <span style={{float: 'right'}}>
@@ -31,7 +31,7 @@ const ProjectSummary = (props) => {
   );
 };
 
-class ProjectList extends React.Component {
+class ProjectSummaryList extends React.Component {
 
   constructor(props) {
     super(props);
@@ -58,7 +58,7 @@ class ProjectList extends React.Component {
   // }
 
   render() {
-    const projects = this.props.projects.map(p => 
+    const projects = this.props.projects.map(p =>
       {
         const key = p.projectName + 'project-key';
         return (
@@ -85,14 +85,14 @@ const Project = (props) => {
 
   const unfinished = (
     <div>
-      <h2>{props.projectName}</h2>
+      <h2>{props.content.projectName}</h2>
       <div>
         Start Date<br/>
-        {props.startDate}
+        {props.content.startDate}
       </div>
       <div>
         Target End Date<br/>
-        {props.targetEndDate}
+        {props.content.targetEndDate}
       </div>
     </div>
   );
@@ -100,7 +100,7 @@ const Project = (props) => {
   const finished = (
     <div>
       Actual End Date<br/>
-      {props.actualEndDate}
+      {props.content.actualEndDate}
     </div>
   );
 
@@ -114,13 +114,13 @@ const Project = (props) => {
         </tr>
         <tr>
           <td>Created</td>
-          <td>{props.createdOn}</td>
-          <td>{props.createdBy}</td>
+          <td>{props.content.createdOn}</td>
+          <td>{props.content.createdBy}</td>
         </tr>
         <tr>
           <td>Last Modified</td>
-          <td>{props.modifiedOn}</td>
-          <td>{props.modifiedBy}</td>
+          <td>{props.content.modifiedOn}</td>
+          <td>{props.content.modifiedBy}</td>
         </tr>
       </table>
     </div>
@@ -133,12 +133,38 @@ const Project = (props) => {
   }
 };
 
-const NewProject = (props) => {
-  return (
-    <div className='new-project'>
-      This is a NEW project.
-    </div>
-  );
+class NewProject extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      projectName: ''
+    };
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({projectName: event.target.value});
+  }
+
+  handleSubmit(event) {
+    alert('The new project is named ' + this.state.projectName);
+    event.preventDefaults();
+  }
+
+  render() {
+    return (
+      <div className='new-project'>
+        This is a NEW project. Did you spot the change?
+        <form onSubmit={this.handleSubmit}>
+          <label>Project Name</label><br/>
+            <input type='text' value={this.state.projectName} onChange={this.handleChange}/><br/>
+            <input type='submit' value='Submit'/>
+        </form>
+      </div>
+    );
+  }
 };
 
 /******************** PEOPLE ********************/
@@ -390,7 +416,7 @@ const TopBar = (props) => {
 const SideBar = (props) => {
   return (
     <div id={'sidebar-' + props.toggle} onClick={props.onClickSidebar}>
-      <b>></b><br/>
+      <b>...</b><br/>
       <div id='sidebar-text'>
         <a href='javascript:;' id='menu-item-people' className='sidebar-menu'
           onClick={props.onClickMenuItem}>People</a><br/>
@@ -416,7 +442,7 @@ const SubContent = (props) => {
       content = <IssueList/>;
       break;
     case 'project':
-      content = <Project/>;
+      content = <Project content={props.content}/>;
       break;
     case 'new-project':
       content = <NewProject/>;
@@ -435,7 +461,7 @@ const SubContent = (props) => {
 };
 
 const MainContent = (props) => {
-  return <SubContent type={props.type}/>;
+  return <SubContent type={props.type} content={props.content}/>;
 };
 
 class App extends React.Component {
@@ -447,6 +473,7 @@ class App extends React.Component {
       leftCol: 'projects',
       mainWidth: 'wide',
       contentType: '',
+      content: '',
       projects: []
     };
     this.toggleSidebar = this.toggleSidebar.bind(this);
@@ -495,10 +522,12 @@ class App extends React.Component {
 
   handleClick(itemKey) {
     const issuesList = document.getElementById('issues-list');
-    const project = document.getElementById('project');
-    
-    if (itemKey === 'view-project') {
-      this.setState({contentType: 'project'});
+
+    if (itemKey.includes('view-project')) {
+      var projectName = itemKey.match(/[A-Za-z0-9_ ]+(?=view-project)/)[0];
+      var project = this.state.projects.find(p => p.projectName === projectName);
+      console.log(project);
+      this.setState({contentType: 'project', content: project});
     }
     else if (itemKey.includes('view-issues')) {
       this.setState({contentType: 'issues'});
@@ -524,15 +553,15 @@ class App extends React.Component {
         <div id={'main-' + this.state.mainWidth}>
           <TopBar/>
           <div id='main-content'>
-            <ProjectList projects={this.state.projects} onClick={this.handleClick}/>
+            <ProjectSummaryList projects={this.state.projects} onClick={this.handleClick}/>
             <PersonSummaryList onClick={this.handleClick}/>
-            <MainContent type={this.state.contentType} onClick={this.handleClick}/>
+            <MainContent type={this.state.contentType} content={this.state.content} onClick={this.handleClick}/>
           </div>
         </div>
       </div>
       // <LoginDialog/>
     );
-  } 
+  }
 }
 
 ReactDOM.render(<App/>, document.getElementById('app'));
