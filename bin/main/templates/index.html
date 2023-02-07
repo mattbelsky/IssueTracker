@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+    <head lang="en">
+        <meta charset="UTF-8"/>
+        <title>Bug Tracker</title>
+        <!-- Need to use path /main.css when running with Gradle -->
+        <!-- <link rel="stylesheet" href="/main.css" /> -->
+    </head>
+    <body>
+        <noscript>JavaScript must be enabled to run this application.</noscript>
+        <div id="app"></div>
+        <!-- Need to use path built/bundle.js when running with Gradle.-->
+        <!-- Use simply "bundle.js" when running with webpack-dev-server. Otherwise, it will be
+        called from localhost:8080/<path>/bundle.js, and return an error.-->
+    	<script src="built/bundle.js"></script>
+    </body>
+</html>

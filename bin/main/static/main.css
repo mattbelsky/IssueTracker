@@ -1,0 +1,115 @@
+:root {
+  --init-margin-left: 15px;
+  --sidebar-background: hsl(180, 5%, 5%);
+  --topbar-height: 25px;
+  --topbar-padding: 5px;
+}
+body {
+  font-family: sans-serif;
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+}
+#sidebar-closed {
+  position: fixed;
+  top: 0px;
+  width: var(--init-margin-left);
+  height: 100%;
+  background: var(--sidebar-background);
+  transition: 0.3s;
+  color: white;
+  overflow-x: hidden;
+  z-index: 1
+}
+#sidebar-open {
+  position: fixed;
+  top: 0px;
+  width: 300px;
+  height: 100%;
+  background: var(--sidebar-background);
+  box-shadow: 2px 0px 3px black;
+  transition: 0.3s;
+  color: white;
+  z-index: 1
+}
+#sidebar-text {
+  padding-left: var(--init-margin-left);
+}
+#main-wide {
+  height: 100%;
+  margin-left: var(--init-margin-left);
+  transition: margin-left 0.3s;
+}
+#main-narrow {
+  height: 100%;
+  margin-left: 300px;
+  transition: margin-left 0.3s;
+}
+#main-content {
+  margin-top: 35px; /* topbar-height + topbar-padding * 2 */
+  border: 1px solid blue;
+}
+#top-bar {
+  position: fixed;
+  top: 0px;
+  width: 100%;
+  height: var(--topbar-height);
+  background: white;
+  border-bottom: 1px solid hsl(180, 15%, 70%);
+  padding: var(--topbar-padding) 0.5em var(--topbar-padding) 0.5em;
+}
+#logout {
+  text-align: right;
+  position: absolute;
+  right: 5%;
+}
+.summary-item-container {
+  /*background: hsl(180, 95%, 96%);*/
+  border: 1px solid hsl(180, 15%, 70%);
+  /*border-radius: 3px;*/
+  padding: 0 10px 10px 10px;
+  margin: 10px;
+}
+.summary-item-container:hover {
+  background: lightcyan;
+}
+.assigned {
+  color: green;
+}
+.unassigned {
+  color: red;
+}
+.left-col {
+  background: white;
+  width: 300px;
+  float: left;
+  border: 1px solid black;
+}
+#person-summary-list {
+  display: none;
+}
+.project {
+  display: none;
+}
+.issue {
+  border: 1px solid black;
+  min-width: 500px;
+  padding: 0 1em 1em 1em;
+}
+.add-new {
+  text-align: center;
+  font-size: 3em;
+  font-weight: bold;
+  color: grey;
+}
+.close {
+  float: right;
+}
+#login {
+  width: 500px;
+  text-align: center;
+  margin: 10% auto auto auto;
+  padding: 1em 1em 1em 1em;
+  background: lightgrey;
+  border: 2px solid grey;
+  border-radius: 10px;
+}

@@ -40,33 +40,33 @@ public class Demo implements CommandLineRunner {
 //        nums.forEach(n -> logger.info("days left to resolve: " + n));
     }
 
-    private void loadDatabase() {
-        // people
-        Person p1 = new Person("Mike Holliday", "mholliday@evilemail.com", "manager",
-                "mholliday", new Date(System.currentTimeMillis()), "Mike Holliday",
-                new Date(System.currentTimeMillis()), "Mike Holliday");
-        Person p2 = new Person("Max Power", "mpower@evilemail.com", "team member",
-                "mpower", new Date(System.currentTimeMillis()), "Mike Holliday",
-                new Date(System.currentTimeMillis()), "Mike Holliday");
-        Person p3 = new Person("Midge Simpson", "msimpson@evilemail.com", "team member",
-                "msimpson", new Date(System.currentTimeMillis()), "Mike Holliday",
-                new Date(System.currentTimeMillis()), "Mike Holliday");
-        personRepository.save(p1);
-        personRepository.save(p2);
-        personRepository.save(p3);
-
-        // projects
-        Project pr1 = new Project("Project 1", new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis()+100000l),
-                new Date(System.currentTimeMillis()), "Mike Holliday", new Date(System.currentTimeMillis()),
-                "Mike Holliday");
-        Project pr2 = new Project("Project 2", new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis()+100000l),
-                new Date(System.currentTimeMillis()), "Mike Holliday", new Date(System.currentTimeMillis()),
-                "Mike Holliday");
-        Project pr3 = new Project("Project 3", new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis()+100000l),
-                new Date(System.currentTimeMillis()), "Mike Holliday", new Date(System.currentTimeMillis()),
-                "Mike Holliday");
-        projectRespository.save(pr1);
-        projectRespository.save(pr2);
-        projectRespository.save(pr3);
-    }
+//    private void loadDatabase() {
+//        // people
+//        Person p1 = new Person("Mike Holliday", "mholliday@evilemail.com", "manager",
+//                "mholliday", new Date(System.currentTimeMillis()), "Mike Holliday",
+//                new Date(System.currentTimeMillis()), "Mike Holliday");
+//        Person p2 = new Person("Max Power", "mpower@evilemail.com", "team member",
+//                "mpower", new Date(System.currentTimeMillis()), "Mike Holliday",
+//                new Date(System.currentTimeMillis()), "Mike Holliday");
+//        Person p3 = new Person("Midge Simpson", "msimpson@evilemail.com", "team member",
+//                "msimpson", new Date(System.currentTimeMillis()), "Mike Holliday",
+//                new Date(System.currentTimeMillis()), "Mike Holliday");
+//        personRepository.save(p1);
+//        personRepository.save(p2);
+//        personRepository.save(p3);
+//
+//        // projects
+//        Project pr1 = new Project("Project 1", new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis()+100000l),
+//                new Date(System.currentTimeMillis()), "Mike Holliday", new Date(System.currentTimeMillis()),
+//                "Mike Holliday");
+//        Project pr2 = new Project("Project 2", new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis()+100000l),
+//                new Date(System.currentTimeMillis()), "Mike Holliday", new Date(System.currentTimeMillis()),
+//                "Mike Holliday");
+//        Project pr3 = new Project("Project 3", new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis()+100000l),
+//                new Date(System.currentTimeMillis()), "Mike Holliday", new Date(System.currentTimeMillis()),
+//                "Mike Holliday");
+//        projectRespository.save(pr1);
+//        projectRespository.save(pr2);
+//        projectRespository.save(pr3);
+//    }
 }

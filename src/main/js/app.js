@@ -37,26 +37,6 @@ class ProjectSummaryList extends React.Component {
     super(props);
   }
 
-  // preload() {
-  //   var projects = [];
-  //   var makeProjects = (projectName, numIssues, assigned) => projects.push(
-  //     {
-  //       projectName: projectName,
-  //       numIssues: numIssues,
-  //       assigned: assigned
-  //     }
-  //   );
-  //   makeProjects('Project 1', '4', 'false');
-  //   makeProjects('Project 2', '1', 'true');
-  //   makeProjects('Project 3', '0', 'false');
-  //   makeProjects('Project 4', '7', 'false');
-  //   this.setState({projects: projects});
-  // }
-
-  // componentWillMount() {
-  //   this.preload();
-  // }
-
   render() {
     const projects = this.props.projects.map(p =>
       {
@@ -221,33 +201,6 @@ class PersonSummaryList extends React.Component {
     );
   }
 }
-// const PersonSummaryList = (props) => {
-//   var people = [];
-
-//   function preload(personName, personRole) {
-//     people.push(
-//       <PersonSummary
-//         key={personName + 'person-key'} // needs improved but ok for now
-//         personName={personName}
-//         personRole={personRole}
-//         onClick={props.onClick}/>
-//     );
-//   }
-
-//   function createPeople() {
-//     preload('Mike Holliday', 'manager');
-//     preload('Max Power', 'team member');
-//     preload('Midge Simpson', 'team member');
-//   }
-
-//   createPeople();
-//   return (
-//     <div id='person-summary-list' className='left-col'>
-//       {people}
-//       <div className='add-new'>+</div>
-//     </div>
-//   );
-// }
 
 const Person = (props) => {
   return (
