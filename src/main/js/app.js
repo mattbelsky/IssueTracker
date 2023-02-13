@@ -343,20 +343,6 @@ const NewIssue = () => {
   return <div>This is a NEW issue.</div>;
 };
 
-const LoginDialog = () => {
-  return (
-    <div id='login'>
-      <form>
-        Email:<br/>
-        <input type='text'/><br/>
-        Password:<br/>
-        <input type='text'/><br/>
-        <input type='submit' value='Submit'/>
-      </form>
-    </div>
-  );
-};
-
 const TopBar = (props) => {
   return (
     <div id='top-bar'>
@@ -417,11 +403,31 @@ const MainContent = (props) => {
   return <SubContent type={props.type} content={props.content}/>;
 };
 
+/******************** LOGIN ********************/
+
+const LoginDialog = (props) => {
+  return (
+    <div id='login'>
+      <form>
+        Email:<br/>
+        <input type='text'/><br/>
+        Password:<br/>
+        <input type='text'/><br/>
+        <input type='submit' value='Submit'/>
+        <input type='button' value='Cancel' onClick={props.onClick}/>
+      </form>
+    </div>
+  );
+};
+
+/******************** APP ********************/
+
 class App extends React.Component {
 
   constructor(props) {
     super(props)
     this.state = {
+      isLoggedIn: false,
       sidebar: 'closed',
       leftCol: 'projects',
       mainWidth: 'wide',
@@ -432,6 +438,7 @@ class App extends React.Component {
     this.toggleSidebar = this.toggleSidebar.bind(this);
     this.toggleSummaryCol = this.toggleSummaryCol.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.logIn = this.logIn.bind(this);
   }
 
   componentDidMount() {
@@ -497,23 +504,32 @@ class App extends React.Component {
     console.log('\'' + itemKey + '\' clicked');
   }
 
+  logIn() {
+    this.setState({isLoggedIn: true});
+  }
+
   render() {
-    return (
-      <div>
-        <SideBar
-          onClickSidebar={this.toggleSidebar} toggle={this.state.sidebar}
-          onClickMenuItem={this.toggleSummaryCol}/>
-        <div id={'main-' + this.state.mainWidth}>
-          <TopBar/>
-          <div id='main-content'>
-            <ProjectSummaryList projects={this.state.projects} onClick={this.handleClick}/>
-            <PersonSummaryList onClick={this.handleClick}/>
-            <MainContent type={this.state.contentType} content={this.state.content} onClick={this.handleClick}/>
+    const isLoggedIn = this.state.isLoggedIn;
+    if (isLoggedIn) {
+      return (
+          <div>
+            <SideBar
+              onClickSidebar={this.toggleSidebar} toggle={this.state.sidebar}
+              onClickMenuItem={this.toggleSummaryCol}/>
+            <div id={'main-' + this.state.mainWidth}>
+              <TopBar/>
+              <div id='main-content'>
+                <ProjectSummaryList projects={this.state.projects} onClick={this.handleClick}/>
+                <PersonSummaryList onClick={this.handleClick}/>
+                <MainContent type={this.state.contentType} content={this.state.content} onClick={this.handleClick}/>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      // <LoginDialog/>
-    );
+      );
+    }
+    else {
+      return <LoginDialog onClick={this.logIn}/>;
+    }
   }
 }
 

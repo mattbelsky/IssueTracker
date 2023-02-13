@@ -3,10 +3,15 @@ package io.github.mattbelsky.issuetracker.model;
 import javax.persistence.*;
 import java.sql.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 @Entity
 @Table(name = "people")
 public class Person {
 
+    public static final PasswordEncoder PASSWORD_ENCODER = new BCryptPasswordEncoder();
     @Id
     @Column(name = "person_id")
     private int personId;
@@ -17,6 +22,8 @@ public class Person {
     @Column(name = "person_role")
     private String personRole;
     private String username;
+    @JsonIgnore
+    private String password;
     @Column(name = "assigned_project")
     private Integer assignedProject;
     @Column(name = "created_on")
@@ -28,12 +35,13 @@ public class Person {
     @Column(name = "modified_by")
     private String modifiedBy;
 
-    public Person(String personName, String personEmail, String personRole, String username, Date createdOn,
-                  String createdBy, Date modifiedOn, String modifiedBy) {
+    public Person(String personName, String personEmail, String personRole, String username, String password,
+                  Date createdOn, String createdBy, Date modifiedOn, String modifiedBy) {
         this.personName = personName;
         this.personEmail = personEmail;
         this.personRole = personRole;
         this.username = username;
+        this.setPassword(password);
         this.createdOn = createdOn;
         this.createdBy = createdBy;
         this.modifiedOn = modifiedOn;
@@ -78,6 +86,10 @@ public class Person {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    public void setPassword(String password) { this.password = PASSWORD_ENCODER.encode(password); }
+
+    public String getPassword() { return password; }
 
     public Integer getAssignedProject() {
         return assignedProject;
