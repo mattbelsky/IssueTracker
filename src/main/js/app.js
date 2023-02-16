@@ -23,7 +23,7 @@ const ProjectSummary = (props) => {
       </a>
       <span style={{float: 'right'}}>
         <a href='javascript:;' id='view-issues'
-          onClick={() => props.onClick('view-issues')}>
+          onClick={() => { props.onClick('view-issues')}}>
           view issues
         </a>
       </span>
@@ -249,27 +249,25 @@ const IssueSummary = (props) => {
 
 const IssueList = (props) => {
 
-  var issueSummaries = [];
+  let issueSummaries = [];
 
-  function preload(relatedProject, issueSummary, assignedTo, createdOn, targetResolutionDate) {
-    issueSummaries.push(
-      <IssueSummary
-        key={issueSummary + 'key'} // needs improved but ok for now
-        relatedProject={relatedProject}
-        issueSummary={issueSummary}
-        assignedTo={assignedTo}
-        createdOn={createdOn}
-        targetResolutionDate={targetResolutionDate} />
-    );
+  function preload(elements) {
+    elements.forEach(e => {
+      issueSummaries.push(
+        <IssueSummary
+          key={e.issueSummary + 'key'} // needs improved but ok for now
+          relatedProject={e.relatedProject}
+          issueSummary={e.issueSummary}
+          assignedTo={e.assignedTo}
+          createdOn={e.createdOn}
+          targetResolutionDate={e.targetResolutionDate} />
+        );
+    });
   }
 
-  function createIssueSummaries() {
-    preload('1', 'not working', 'Marky', '10/01/2019', '12/01/2019');
-    preload('2', 'not working', 'Mikey', '10/02/2019', '12/01/2019');
-    preload('3', 'no worko', 'Jose', '9/15/2019', '11/15/2019');
-  }
+  console.log(props.content);
+  preload(props.content);
 
-  createIssueSummaries();
   return (
     <div id='issues-list'>
       {issueSummaries}
@@ -378,7 +376,8 @@ const SubContent = (props) => {
 
   switch (props.type) {
     case 'issues':
-      content = <IssueList/>;
+      content = <IssueList content={props.content}/>;
+      console.log(props);
       break;
     case 'project':
       content = <Project content={props.content}/>;
@@ -433,7 +432,9 @@ class App extends React.Component {
       mainWidth: 'wide',
       contentType: '',
       content: '',
-      projects: []
+      projects: [],
+      issues: [],
+      activeProject: ''
     };
     this.toggleSidebar = this.toggleSidebar.bind(this);
     this.toggleSummaryCol = this.toggleSummaryCol.bind(this);
@@ -447,9 +448,9 @@ class App extends React.Component {
       .then(data => this.setState({projects: data._embedded.projects}));
   }
 
-  componentDidUpdate() {
-    console.log(this.state.projects);
-  }
+//  componentDidUpdate() {
+//    console.log(this.state.projects);
+//  }
 
   toggleSidebar() {
     if (this.sidebar === 'open') {
@@ -490,7 +491,12 @@ class App extends React.Component {
       this.setState({contentType: 'project', content: project});
     }
     else if (itemKey.includes('view-issues')) {
-      this.setState({contentType: 'issues'});
+      fetch('http://localhost:8080/api/issues')
+        .then(response => response.json())
+        .then(data => this.setState({
+          contentType: 'issues',
+          content: data._embedded.issues,
+        }));
     }
     else if (itemKey === 'new-project') {
       this.setState({contentType: itemKey});
