@@ -23,7 +23,7 @@ const ProjectSummary = (props) => {
       </a>
       <span style={{float: 'right'}}>
         <a href='javascript:;' id='view-issues'
-          onClick={() => { props.onClick('view-issues')}}>
+          onClick={() => { props.onClick('view-issues', props.id)}}>
           view issues
         </a>
       </span>
@@ -44,7 +44,7 @@ class ProjectSummaryList extends React.Component {
         return (
           <ProjectSummary
             key={key}
-            id={key}
+            id={p._links.self.href.match(/\w+$/)[0]}
             projectName={p.projectName}
             numIssues={p.numIssues}
             assigned={p.assigned}
@@ -481,7 +481,7 @@ class App extends React.Component {
     }
   }
 
-  handleClick(itemKey) {
+  handleClick(itemKey, id) {
     const issuesList = document.getElementById('issues-list');
 
     if (itemKey.includes('view-project')) {
@@ -493,10 +493,18 @@ class App extends React.Component {
     else if (itemKey.includes('view-issues')) {
       fetch('http://localhost:8080/api/issues')
         .then(response => response.json())
-        .then(data => this.setState({
-          contentType: 'issues',
-          content: data._embedded.issues,
-        }));
+        .then(data => {
+          data = data._embedded.issues.filter(d => d.relatedProject == id);
+          this.setState({
+            contentType: 'issues',
+            content: data
+          });
+        });
+
+//        .then(data => this.setState({
+//          contentType: 'issues',
+//          content: data._embedded.issues,
+//        }));
     }
     else if (itemKey === 'new-project') {
       this.setState({contentType: itemKey});
