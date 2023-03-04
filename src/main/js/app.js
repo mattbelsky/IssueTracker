@@ -118,19 +118,32 @@ class NewProject extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      projectName: ''
+      projectName: '',
+      targetEndDate: '',
+      startDate: new Date(),
+      createdOn: new Date(),
+      createdBy: 'Mike Holliday'
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleChange(event) {
-    this.setState({projectName: event.target.value});
+    const target = event.target;
+    const name = target.name;
+    const value = target.value;
+    this.setState({[name]: value});
   }
 
   handleSubmit(event) {
-    alert('The new project is named ' + this.state.projectName);
-    event.preventDefaults();
+    event.preventDefault();
+    fetch('http://localhost:8080/api/projects', {
+      method: 'POST',
+      headers: new Headers({'Content-Type': 'application/json'}),
+      body: JSON.stringify(this.state)
+    }).
+      then(response => alert('Submitted successfully!')).
+      catch(error => alert('Form submit error', error));
   }
 
   render() {
@@ -139,8 +152,10 @@ class NewProject extends React.Component {
         This is a NEW project. Did you spot the change?
         <form onSubmit={this.handleSubmit}>
           <label>Project Name</label><br/>
-            <input type='text' value={this.state.projectName} onChange={this.handleChange}/><br/>
-            <input type='submit' value='Submit'/>
+            <input name='projectName' type='text' value={this.state.projectName} onChange={this.handleChange}/><br/>
+          <label>Target End Date</label><br/>
+            <input name='targetEndDate' type='date' value={this.state.targetEndDate} onChange={this.handleChange}/><br/>
+          <input type='submit' value='Submit'/>
         </form>
       </div>
     );
@@ -500,11 +515,6 @@ class App extends React.Component {
             content: data
           });
         });
-
-//        .then(data => this.setState({
-//          contentType: 'issues',
-//          content: data._embedded.issues,
-//        }));
     }
     else if (itemKey === 'new-project') {
       this.setState({contentType: itemKey});
