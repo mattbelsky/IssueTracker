@@ -119,7 +119,7 @@ class NewProject extends React.Component {
     super(props);
     this.state = {
       projectName: '',
-      targetEndDate: '',
+      targetEndDate: '2025-03-31',
       startDate: new Date(),
       createdOn: new Date(),
       createdBy: 'Mike Holliday'
@@ -441,7 +441,7 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      isLoggedIn: false,
+      isLoggedIn: true,
       sidebar: 'closed',
       leftCol: 'projects',
       mainWidth: 'wide',
