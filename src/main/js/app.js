@@ -503,11 +503,22 @@ class App extends React.Component {
     const issuesList = document.getElementById('issues-list');
 
     if (itemKey.includes('view-project')) {
-      var projectName = itemKey.match(/[A-Za-z0-9_ ]+(?=view-project)/)[0];
-      var project = this.state.projects.find(p => p.projectName === projectName);
-      console.log(projectName);
-      console.log(project);
-      this.setState({contentType: 'project', content: project});
+      let projectName = itemKey.match(/[A-Za-z0-9_ ]+(?=view-project)/)[0];
+      const project = (projectName) => this.state.projects.find(p => p.projectName === projectName);
+      if (project(projectName) === undefined) {
+        fetch("http://localhost:8080/api/projects")
+          .then(response => response.json())
+          .then(data => {
+            this.setState({projects: data._embedded.projects});
+            this.setState({
+              contentType: 'project',
+              content: project(projectName)
+            });
+          });
+      }
+      else {
+        this.setState({contentType: 'project', content: project(projectName)});
+      }
     }
     else if (itemKey.includes('view-issues')) {
       fetch('http://localhost:8080/api/issues')
