@@ -135,27 +135,30 @@ class NewProject extends React.Component {
     this.setState({[name]: value});
   }
 
-  handleSubmit(event) {
-    event.preventDefault();
+  handleSubmit() {
     fetch('http://localhost:8080/api/projects', {
       method: 'POST',
       headers: new Headers({'Content-Type': 'application/json'}),
       body: JSON.stringify(this.state)
-    }).
-      then(response => alert('Submitted successfully!')).
-      catch(error => alert('Form submit error', error));
+    })
+      .then(response => {
+        console.log(this.state.projectName + 'view-project');
+        this.props.onClick(this.state.projectName + 'view-project');
+        alert('Submitted successfully!');
+      })
+      .catch(error => alert('Form submit error', error));
   }
 
   render() {
     return (
       <div className='new-project'>
         This is a NEW project. Did you spot the change?
-        <form onSubmit={this.handleSubmit}>
+        <form>
           <label>Project Name</label><br/>
             <input name='projectName' type='text' value={this.state.projectName} onChange={this.handleChange}/><br/>
           <label>Target End Date</label><br/>
             <input name='targetEndDate' type='date' value={this.state.targetEndDate} onChange={this.handleChange}/><br/>
-          <input type='submit' value='Submit'/>
+          <input type='button' value='Submit' onClick={this.handleSubmit}/>
         </form>
       </div>
     );
@@ -398,7 +401,7 @@ const SubContent = (props) => {
       content = <Project content={props.content}/>;
       break;
     case 'new-project':
-      content = <NewProject/>;
+      content = <NewProject onClick={props.onClick}/>;
       break;
     case 'new-issue':
       content = <NewIssue/>;
@@ -414,7 +417,7 @@ const SubContent = (props) => {
 };
 
 const MainContent = (props) => {
-  return <SubContent type={props.type} content={props.content}/>;
+  return <SubContent type={props.type} content={props.content} onClick={props.onClick}/>;
 };
 
 /******************** LOGIN ********************/
@@ -502,6 +505,7 @@ class App extends React.Component {
     if (itemKey.includes('view-project')) {
       var projectName = itemKey.match(/[A-Za-z0-9_ ]+(?=view-project)/)[0];
       var project = this.state.projects.find(p => p.projectName === projectName);
+      console.log(projectName);
       console.log(project);
       this.setState({contentType: 'project', content: project});
     }
