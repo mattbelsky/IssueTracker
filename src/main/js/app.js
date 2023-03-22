@@ -135,7 +135,8 @@ class NewProject extends React.Component {
     this.setState({[name]: value});
   }
 
-  handleSubmit() {
+  handleSubmit(event) {
+    event.preventDefault();
     fetch('http://localhost:8080/api/projects', {
       method: 'POST',
       headers: new Headers({'Content-Type': 'application/json'}),
@@ -153,12 +154,12 @@ class NewProject extends React.Component {
     return (
       <div className='new-project'>
         This is a NEW project. Did you spot the change?
-        <form>
+        <form onSubmit={this.handleSubmit}>
           <label>Project Name</label><br/>
             <input name='projectName' type='text' value={this.state.projectName} onChange={this.handleChange}/><br/>
           <label>Target End Date</label><br/>
             <input name='targetEndDate' type='date' value={this.state.targetEndDate} onChange={this.handleChange}/><br/>
-          <input type='button' value='Submit' onClick={this.handleSubmit}/>
+          <input type='submit' value='Submit'/>
         </form>
       </div>
     );
