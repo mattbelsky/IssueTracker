@@ -119,10 +119,12 @@ class NewProject extends React.Component {
     super(props);
     this.state = {
       projectName: '',
-      targetEndDate: '2025-03-31',
+      targetEndDate: new Date().toISOString().slice(0,10),
       startDate: new Date(),
       createdOn: new Date(),
-      createdBy: 'Mike Holliday'
+      createdBy: 'Mike Holliday',
+      validProjectName: true,
+      validDate: true
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -137,13 +139,27 @@ class NewProject extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
+
+    if (this.state.projectName === '') {
+      this.setState({validProjectName: false});
+      return;
+    }
+    else
+      this.setState({validProjectName: true});
+
+    if (new Date(this.state.targetEndDate) < new Date()) {
+      this.setState({validDate: false});
+      return;
+    }
+    else
+      this.setState({validDate: true});
+
     fetch('http://localhost:8080/api/projects', {
       method: 'POST',
       headers: new Headers({'Content-Type': 'application/json'}),
       body: JSON.stringify(this.state)
     })
       .then(response => {
-        console.log(this.state.projectName + 'view-project');
         this.props.onClick(this.state.projectName + 'view-project');
         alert('Submitted successfully!');
       })
@@ -157,8 +173,14 @@ class NewProject extends React.Component {
         <form onSubmit={this.handleSubmit}>
           <label>Project Name</label><br/>
             <input name='projectName' type='text' value={this.state.projectName} onChange={this.handleChange}/><br/>
+            {!this.state.validProjectName &&
+              <p>Invalid project name.</p>
+            }
           <label>Target End Date</label><br/>
             <input name='targetEndDate' type='date' value={this.state.targetEndDate} onChange={this.handleChange}/><br/>
+            {!this.state.validDate &&
+              <p>Target end date must be today or later.</p>
+            }
           <input type='submit' value='Submit'/>
         </form>
       </div>
@@ -505,7 +527,7 @@ class App extends React.Component {
 
     if (itemKey.includes('view-project')) {
       let projectName = itemKey.match(/[A-Za-z0-9_ ]+(?=view-project)/)[0];
-      const project = (projectName) => this.state.projects.find(p => p.projectName === projectName);
+      const project = (name) => this.state.projects.find(p => p.projectName === name);
       if (project(projectName) === undefined) {
         fetch("http://localhost:8080/api/projects")
           .then(response => response.json())
