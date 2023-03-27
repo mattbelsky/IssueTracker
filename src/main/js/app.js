@@ -378,9 +378,84 @@ const Issue = (props) => {
   );
 };
 
-const NewIssue = () => {
-  return <div>This is a NEW issue.</div>;
-};
+//const NewIssue = () => {
+//  return <div>This is a NEW issue.</div>;
+//};
+
+class NewIssue extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      issueSummary: '',
+      issueDescription: '',
+      identifiedByPersonId: 8,
+      identifiedDate: new Date().toISOString().slice(0,10),
+      relatedProject: 1,
+      assignedTo: 9,
+      status: 'open',
+      priority: 'urgent',
+      targetResolutionDate: new Date().toISOString().slice(0,10),
+      progress: '',
+      actualResolutionDate: '',
+      resolutionSummary: '',
+      createdOn: new Date().toISOString().slice(0,10),
+      createdBy: 'Mike Holliday',
+      modifiedOn: new Date().toISOString().slice(0,10),
+      modifiedBy: 'Mike Holliday',
+      validDate: true
+    };
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  // For now need to set a default user for application
+
+  handleChange() {
+    const target = event.target;
+    const name = target.name;
+    const value = target.value;
+    this.setState({[name]: value});
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+
+    if (new Date(this.state.targetEndDate) < new Date()) {
+      this.setState({validDate: false});
+      return;
+    }
+    else
+      this.setState({validDate: true});
+
+    console.log(this.state);
+
+    fetch('http://localhost:8080/api/issues', {
+      method: 'POST',
+      headers: new Headers({'Content-Type': 'application/json'}),
+      body: JSON.stringify(this.state)
+    })
+      .then(response => {
+        this.props.onClick('view-issues');
+        alert('Submitted successfully!');
+      })
+      .catch(error => alert('Form submit error', error));
+  }
+
+  render() {
+    return (
+      <div className='new-issue'>
+        <form onSubmit={this.handleSubmit}>
+          <label>Issue Summary</label><br/>
+          <input type='text' name='issueSummary' value={this.state.issueSummary} onChange={this.handleChange}/><br/>
+          <label>Issue Description</label><br/>
+          <input type='textarea' name='issueDescription' value={this.state.issueDescription} onChange={this.handleChange}/><br/>
+          <input type='submit' value='Submit'/>
+        </form>
+      </div>
+    );
+  }
+}
 
 const TopBar = (props) => {
   return (
@@ -417,7 +492,7 @@ const SubContent = (props) => {
 
   switch (props.type) {
     case 'issues':
-      content = <IssueList content={props.content}/>;
+      content = <IssueList content={props.content} onClick={props.onClick}/>;
       console.log(props);
       break;
     case 'project':
