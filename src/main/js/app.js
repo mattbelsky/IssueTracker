@@ -281,6 +281,7 @@ const IssueSummary = (props) => {
     <div className='issue'>
       <h2>{props.relatedProject}</h2>
       <div>{props.issueSummary}</div>
+      <div>{props.issueDescription}</div>
       <div>{props.assignedTo}</div>
       <div style={{float: 'left'}}>{props.createdOn}</div>
       <div style={{float: 'right'}}>{props.targetResolutionDate}</div>
@@ -291,14 +292,16 @@ const IssueSummary = (props) => {
 const IssueList = (props) => {
 
   let issueSummaries = [];
+  let relatedProject = props.content[0].relatedProject;
 
   function preload(elements) {
     elements.forEach(e => {
       issueSummaries.push(
         <IssueSummary
-          key={e.issueSummary + 'key'} // needs improved but ok for now
+          key={e.issueSummary + e.createdOn + 'key'} // screen for duplicates before assigning key
           relatedProject={e.relatedProject}
           issueSummary={e.issueSummary}
+          issueDescription={e.issueDescription}
           assignedTo={e.assignedTo}
           createdOn={e.createdOn}
           targetResolutionDate={e.targetResolutionDate} />
@@ -306,13 +309,15 @@ const IssueList = (props) => {
     });
   }
 
-  console.log(props.content);
+  console.log(props);
+  console.log(issueSummaries);
   preload(props.content);
+  console.log(relatedProject);
 
   return (
     <div id='issues-list'>
       {issueSummaries}
-      <div className='add-new' onClick={() => props.onClick('new-issue')}>+</div>
+      <div className='add-new' onClick={() => props.onClick('new-issue', relatedProject)}>+</div>
     </div>
   );
 }
@@ -391,7 +396,7 @@ class NewIssue extends React.Component {
       issueDescription: '',
       identifiedByPersonId: 8,
       identifiedDate: new Date().toISOString().slice(0,10),
-      relatedProject: 1,
+      relatedProject: this.props.relatedProject,
       assignedTo: 9,
       status: 'open',
       priority: 'urgent',
@@ -403,13 +408,24 @@ class NewIssue extends React.Component {
       createdBy: 'Mike Holliday',
       modifiedOn: new Date().toISOString().slice(0,10),
       modifiedBy: 'Mike Holliday',
-      validDate: true
+      validDate: true,
+      issues: []
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   // For now need to set a default user for application
+
+  componentDidMount() {
+    // Get list of issues. For comparing new submissions with existing to ensure no duplicates.
+    fetch('http://localhost:8080/api/issues')
+      .then(response => response.json())
+      .then(data => {
+        this.setState({issues: data._embedded.issues});
+        console.log(data._embedded.issues);
+      })
+  }
 
   handleChange() {
     const target = event.target;
@@ -421,12 +437,21 @@ class NewIssue extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
 
-    if (new Date(this.state.targetEndDate) < new Date()) {
+    // Ensures that the target resolution date is not in the past
+    if (new Date(this.state.targetResolutionDate) < new Date().toISOString().slice(0,10)) {
       this.setState({validDate: false});
       return;
     }
     else
       this.setState({validDate: true});
+
+    // Alerts user and stops submit if a duplicate issue is submitted
+    if (this.state.issues.find(issue =>
+      issue.issueSummary === this.state.issueSummary
+      && issue.relatedProject === this.state.relatedProject) !== undefined) {
+      alert('Duplicate issue. Cannot submit.');
+      return;
+    }
 
     console.log(this.state);
 
@@ -436,10 +461,15 @@ class NewIssue extends React.Component {
       body: JSON.stringify(this.state)
     })
       .then(response => {
-        this.props.onClick('view-issues');
+        console.log(this.props.relatedProject);
+        console.log(this.state.relatedProject);
+        this.props.onClick('view-issues', this.state.relatedProject);
         alert('Submitted successfully!');
       })
-      .catch(error => alert('Form submit error', error));
+      .catch(error => {
+        console.error(error);
+        alert('Form submit error', error);
+      });
   }
 
   render() {
@@ -502,7 +532,7 @@ const SubContent = (props) => {
       content = <NewProject onClick={props.onClick}/>;
       break;
     case 'new-issue':
-      content = <NewIssue/>;
+      content = <NewIssue relatedProject={props.content} onClick={props.onClick}/>;
       break;
     case 'new-person':
       content = <NewPerson/>;
@@ -564,10 +594,6 @@ class App extends React.Component {
       .then(data => this.setState({projects: data._embedded.projects}));
   }
 
-//  componentDidUpdate() {
-//    console.log(this.state.projects);
-//  }
-
   toggleSidebar() {
     if (this.sidebar === 'open') {
       this.setState({sidebar: 'closed'});
@@ -619,21 +645,34 @@ class App extends React.Component {
       }
     }
     else if (itemKey.includes('view-issues')) {
+      console.log('itemKey: ' + itemKey + '\nid: ' + id);
       fetch('http://localhost:8080/api/issues')
         .then(response => response.json())
         .then(data => {
           data = data._embedded.issues.filter(d => d.relatedProject == id);
-          this.setState({
-            contentType: 'issues',
-            content: data
-          });
+          console.log(data);
+          if (data.length === 0)
+            this.setState({
+              contentType: '',
+              content: ''
+            });
+          else {
+            this.setState({
+              contentType: 'issues',
+              content: data
+            });
+            console.log(this.state.content);
+          }
         });
     }
     else if (itemKey === 'new-project') {
       this.setState({contentType: itemKey});
     }
     else if (itemKey === 'new-issue') {
-      this.setState({contentType: itemKey});
+      this.setState({
+        contentType: itemKey,
+        content: id
+      });
     }
     else if (itemKey === 'new-person') {
       this.setState({contentType: itemKey});
