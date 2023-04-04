@@ -438,7 +438,7 @@ class NewIssue extends React.Component {
     event.preventDefault();
 
     // Ensures that the target resolution date is not in the past
-    if (new Date(this.state.targetResolutionDate) < new Date().toISOString().slice(0,10)) {
+    if (new Date(this.state.targetResolutionDate) < new Date()) {
       this.setState({validDate: false});
       return;
     }
@@ -480,6 +480,11 @@ class NewIssue extends React.Component {
           <input type='text' name='issueSummary' value={this.state.issueSummary} onChange={this.handleChange}/><br/>
           <label>Issue Description</label><br/>
           <input type='textarea' name='issueDescription' value={this.state.issueDescription} onChange={this.handleChange}/><br/>
+          <label>Target Resolution Date</label><br/>
+          <input type='date' name='targetResolutionDate' value={this.state.targetResolutionDate} onChange={this.handleChange}/><br/>
+          {!this.state.validDate &&
+            <p>Target end date must be today or later.</p>
+          }
           <input type='submit' value='Submit'/>
         </form>
       </div>
