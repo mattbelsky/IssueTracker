@@ -278,7 +278,7 @@ const NewPerson = () => {
 
 const IssueSummary = (props) => {
   return (
-    <div className='issue'>
+    <div className='issue' onClick={() => props.onClick('view-issue', props.id)}>
       <h2>{props.relatedProject}</h2>
       <div>{props.issueSummary}</div>
       <div>{props.issueDescription}</div>
@@ -298,13 +298,15 @@ const IssueList = (props) => {
     elements.forEach(e => {
       issueSummaries.push(
         <IssueSummary
+          id={e._links.self.href.match(/\w+$/)}
           key={e.issueSummary + e.createdOn + 'key'} // screen for duplicates before assigning key
           relatedProject={e.relatedProject}
           issueSummary={e.issueSummary}
           issueDescription={e.issueDescription}
           assignedTo={e.assignedTo}
           createdOn={e.createdOn}
-          targetResolutionDate={e.targetResolutionDate} />
+          targetResolutionDate={e.targetResolutionDate}
+          onClick={props.onClick}/>
         );
     });
   }
@@ -324,58 +326,61 @@ const IssueList = (props) => {
 
 const Issue = (props) => {
 
+  console.log(props);
   return (
     <div id='issue'>
-      <h2>{props.relatedProject}</h2>
+      <h2>{props.content.relatedProject}</h2>
       <span>&#10006;</span>
       <span
-        className={props.assignedTo === null ? 'unassigned' : 'assigned'}
+        className={props.content.assignedTo === null ? 'unassigned' : 'assigned'}
         style={{float: 'right'}}>
         <b>&#9679;</b>
       </span>
-      <p><b>{props.issueSummary}</b></p>
-      <p>{props.issueDescription}</p>
+      <p><b>{props.content.issueSummary}</b></p>
+      <p>{props.content.issueDescription}</p>
       <div>
         <h3>Assigned To</h3>
-        {props.assignedTo}
+        {props.content.assignedTo}
       </div>
-      <div>{props.resolutionSummary === null ? '' : props.resolutionSummary}</div>
+      <div>{props.content.resolutionSummary === null ? '' : props.resolutionSummary}</div>
       <div>
         <div>
           <h3>Target Resolution Date</h3>
-          {props.targetResolutionDate}
+          {props.content.targetResolutionDate}
         </div>
         <div>
           <h3>Actual Resolution Date</h3>
-          {props.ActualResolutionDate === null ? 'unresolved' : props.actualResolutionDate}
+          {props.content.actualResolutionDate === null ? 'unresolved' : props.content.actualResolutionDate}
         </div>
       </div>
       <div>
         <h3>Progress</h3>
-        <p>{props.progress}</p>
+        <p>{props.content.progress}</p>
       </div>
       <div>
         <table id='issue-status-table'>
-          <tr>
-            <th></th>
-            <th className='issue-status-table-header'>Date</th>
-            <th className='issue-status-table-header'>Person</th>
-          </tr>
-          <tr>
-            <td className='issue-status-table-header'>Identified</td>
-            <td>{props.identifiedDate}</td>
-            <td>{props.identifiedBy}</td>
-          </tr>
-          <tr>
-            <td className='issue-status-table-header'>Created</td>
-            <td>{props.createdOn}</td>
-            <td>{props.createdDate}</td>
-          </tr>
-          <tr>
-            <td className='issue-status-table-header'>Last Modified</td>
-            <td>{props.modifiedOn}</td>
-            <td>{props.modifiedBy}</td>
-          </tr>
+          <tbody>
+            <tr>
+              <th></th>
+              <th className='issue-status-table-header'>Date</th>
+              <th className='issue-status-table-header'>Person</th>
+            </tr>
+            <tr>
+              <td className='issue-status-table-header'>Identified</td>
+              <td>{props.content.identifiedDate}</td>
+              <td>{props.content.identifiedBy}</td>
+            </tr>
+            <tr>
+              <td className='issue-status-table-header'>Created</td>
+              <td>{props.content.createdOn}</td>
+              <td>{props.content.createdDate}</td>
+            </tr>
+            <tr>
+              <td className='issue-status-table-header'>Last Modified</td>
+              <td>{props.content.modifiedOn}</td>
+              <td>{props.content.modifiedBy}</td>
+            </tr>
+          </tbody>
         </table>
       </div>
       <button type='button'>Delete</button>
@@ -530,6 +535,10 @@ const SubContent = (props) => {
       content = <IssueList content={props.content} onClick={props.onClick}/>;
       console.log(props);
       break;
+    case 'issue':
+      content = <Issue content={props.content}/>;
+      console.log(props);
+      break;
     case 'project':
       content = <Project content={props.content}/>;
       break;
@@ -650,7 +659,6 @@ class App extends React.Component {
       }
     }
     else if (itemKey.includes('view-issues')) {
-      console.log('itemKey: ' + itemKey + '\nid: ' + id);
       fetch('http://localhost:8080/api/issues')
         .then(response => response.json())
         .then(data => {
@@ -669,6 +677,18 @@ class App extends React.Component {
             console.log(this.state.content);
           }
         });
+    }
+    else if (itemKey.includes('view-issue')) {
+      fetch('http://localhost:8080/api/issues/' + id)
+        .then(response => response.json())
+        .then(data => {
+          this.setState({
+            contentType: 'issue',
+            content: data
+          });
+          return data;
+        })
+        .then(data => console.log(this.state.content));
     }
     else if (itemKey === 'new-project') {
       this.setState({contentType: itemKey});
