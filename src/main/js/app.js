@@ -383,7 +383,7 @@ const Issue = (props) => {
           </tbody>
         </table>
       </div>
-      <button type='button'>Delete</button>
+      <button type='button' onClick={() => props.onClick('delete-issue', props.content._links.self.href.match(/\w+$/)[0])}>Delete</button>
     </div>
   );
 };
@@ -536,7 +536,7 @@ const SubContent = (props) => {
       console.log(props);
       break;
     case 'issue':
-      content = <Issue content={props.content}/>;
+      content = <Issue content={props.content} onClick={props.onClick}/>;
       console.log(props);
       break;
     case 'project':
@@ -672,13 +672,14 @@ class App extends React.Component {
           else {
             this.setState({
               contentType: 'issues',
-              content: data
+              content: data,
+              activeProject: data[0].relatedProject
             });
-            console.log(this.state.content);
+            console.log(this.state);
           }
         });
     }
-    else if (itemKey.includes('view-issue')) {
+    else if (itemKey === 'view-issue') {
       fetch('http://localhost:8080/api/issues/' + id)
         .then(response => response.json())
         .then(data => {
@@ -686,9 +687,27 @@ class App extends React.Component {
             contentType: 'issue',
             content: data
           });
-          return data;
-        })
-        .then(data => console.log(this.state.content));
+        });
+    }
+    else if (itemKey === 'delete-issue') {
+      fetch('http://localhost:8080/api/issues/' + id, {
+        method: 'DELETE',
+        headers: new Headers({'Content-Type': 'application/json'}),
+        body: JSON.stringify(this.state)
+      })
+      .then(response => {
+        alert('Issue Deleted.');
+        fetch('http://localhost:8080/api/issues/')
+          .then(response => response.json())
+          .then(data => {
+            data = data._embedded.issues.filter(d => d.relatedProject == this.state.activeProject);
+            this.setState({
+              contentType: 'issues',
+              content: data
+            });
+          });
+      })
+      .catch(error => alert(error));
     }
     else if (itemKey === 'new-project') {
       this.setState({contentType: itemKey});
