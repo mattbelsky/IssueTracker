@@ -18,7 +18,7 @@ const ProjectSummary = (props) => {
       <div>{props.numIssues} {props.numIssues == 1 ? 'issue' : 'issues'} pending</div>
       <div className={assigned}>{assigned}</div>
       <a href='javascript:;' id='view-project'
-        onClick={() => props.onClick(props.projectName + 'view-project')}>
+        onClick={() => props.onClick(props.projectName + 'view-project', props.id)}>
         view project
       </a>
       <span style={{float: 'right'}}>
@@ -659,10 +659,10 @@ class App extends React.Component {
       }
     }
     else if (itemKey.includes('view-issues')) {
-      fetch('http://localhost:8080/api/issues')
+      fetch('http://localhost:8080/api/issues/search/findByRelatedProject?projectId=' + id)
         .then(response => response.json())
         .then(data => {
-          data = data._embedded.issues.filter(d => d.relatedProject == id);
+          data = data._embedded.issues;
           console.log(data);
           if (data.length === 0)
             this.setState({
@@ -696,16 +696,16 @@ class App extends React.Component {
         body: JSON.stringify(this.state)
       })
       .then(response => {
-        alert('Issue Deleted.');
-        fetch('http://localhost:8080/api/issues/')
+        fetch('http://localhost:8080/api/issues/search/findByRelatedProject?projectId=' + this.state.activeProject)
           .then(response => response.json())
           .then(data => {
-            data = data._embedded.issues.filter(d => d.relatedProject == this.state.activeProject);
+            data = data._embedded.issues;
             this.setState({
               contentType: 'issues',
               content: data
             });
           });
+        alert('Issue Deleted.');
       })
       .catch(error => alert(error));
     }
