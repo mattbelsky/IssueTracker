@@ -38,20 +38,18 @@ class ProjectSummaryList extends React.Component {
   }
 
   render() {
-    const projects = this.props.projects.map(p =>
-      {
-        const key = p.projectName + 'project-key';
-        return (
-          <ProjectSummary
-            key={key}
-            id={p._links.self.href.match(/\w+$/)[0]}
-            projectName={p.projectName}
-            numIssues={p.numIssues}
-            assigned={p.assigned}
-            onClick={this.props.onClick}/>
-        );
-      }
-    );
+    const projects = this.props.projects.map(p => {
+      const key = p.projectName + 'project-key';
+      return (
+        <ProjectSummary
+          key={key}
+          id={p._links.self.href.match(/\w+$/)[0]}
+          projectName={p.projectName}
+          numIssues={p.numIssues}
+          assigned={p.assigned}
+          onClick={this.props.onClick}/>
+      );
+    });
     return (
       <div id='project-summary-list' className='left-col'>
         {projects}
@@ -191,8 +189,9 @@ class NewProject extends React.Component {
 /******************** PEOPLE ********************/
 
 const PersonSummary = (props) => {
+  console.log(props);
   return (
-    <div className='summary-item-container'>
+    <div className='summary-item-container' onClick={() => props.onClick('view-person', props.id)}>
       <div>{props.personName}</div>
       <div className='person-summary-role'>{props.personRole}</div>
     </div>
@@ -203,37 +202,20 @@ class PersonSummaryList extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      people: []
-    }
-    this.preload = this.preload.bind(this);
-  }
-
-  preload() {
-    var people = [];
-    var makePeople = (personName, personRole) => people.push(
-      {
-        personName: personName,
-        personRole: personRole
-      }
-    );
-    makePeople('Mike Holliday', 'manager');
-    makePeople('Max Power', 'team member');
-    makePeople('Midge Simpson', 'team member');
-    this.setState({people: people});
-  }
-
-  componentWillMount() {
-    this.preload();
   }
 
   render() {
-    const people = this.state.people.map(p =>
-      <PersonSummary
-        key={p.personName + 'person-key'} // needs improved but ok for now
-        personName={p.personName}
-        personRole={p.personRole}/>
-    );
+    const people = this.props.people.map(p => {
+      const personId = p._links.self.href.match(/\w+$/)[0];
+      return (
+        <PersonSummary
+          id={personId}
+          key={personId + p.personName + 'person-key'}
+          personName={p.personName}
+          personRole={p.personRole}
+          onClick={this.props.onClick}/>
+      );
+    });
     return (
       <div id='person-summary-list' className='left-col'>
         {people}
@@ -246,10 +228,10 @@ class PersonSummaryList extends React.Component {
 const Person = (props) => {
   return (
     <div id='person'>
-      <h3>{props.personName}</h3>
-      <p>{props.personRole}</p>
-      <p>{props.username}</p>
-      <p>{props.personEmail}</p>
+      <h3>{props.content.personName}</h3>
+      <p>{props.content.personRole}</p>
+      <p>{props.content.username}</p>
+      <p>{props.content.personEmail}</p>
     </div>
   );
 };
@@ -542,6 +524,9 @@ const SubContent = (props) => {
     case 'project':
       content = <Project content={props.content}/>;
       break;
+    case 'person':
+      content = <Person content={props.content}/>;
+      break;
     case 'new-project':
       content = <NewProject onClick={props.onClick}/>;
       break;
@@ -593,6 +578,7 @@ class App extends React.Component {
       contentType: '',
       content: '',
       projects: [],
+      people: [],
       issues: [],
       activeProject: ''
     };
@@ -603,13 +589,16 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    fetch("http://localhost:8080/api/projects")
+    fetch('http://localhost:8080/api/projects')
       .then(response => response.json())
       .then(data => this.setState({projects: data._embedded.projects}));
+    fetch('http://localhost:8080/api/people')
+      .then(response => response.json())
+      .then(data => this.setState({people: data._embedded.people}));
   }
 
   toggleSidebar() {
-    if (this.sidebar === 'open') {
+    if (this.state.sidebar === 'open') {
       this.setState({sidebar: 'closed'});
       document.getElementById('sidebar-open').setAttribute('id', 'sidebar-closed');
       document.getElementById('main-narrow').setAttribute('id', 'main-wide');
@@ -623,17 +612,21 @@ class App extends React.Component {
   toggleSummaryCol(e) {
     const projectSummaries = document.getElementById('project-summary-list');
     const peopleSummaries = document.getElementById('person-summary-list');
-    const issuesList = document.getElementById('issues-list');
+//    const issuesList = document.getElementById('issues-list');
+    console.log(e.target);
+    console.log(projectSummaries);
+    console.log(peopleSummaries);
+//    console.log(issuesList);
     if (e.target.id === 'menu-item-people') {
       this.setState({leftCol: 'projects', contentType: ''});
       projectSummaries.style.display = 'none';
       peopleSummaries.style.display = 'initial';
-      issuesList.style.display = 'none';
+//      issuesList.style.display = 'none';
     } else if (e.target.id === 'menu-item-projects') {
       this.setState({leftCol: 'people', contentType: ''});
       peopleSummaries.style.display = 'none';
       projectSummaries.style.display = 'initial';
-      issuesList.style.display = 'initial';
+//      issuesList.style.display = 'initial';
     }
   }
 
@@ -718,6 +711,17 @@ class App extends React.Component {
         content: id
       });
     }
+    else if (itemKey === 'view-person') {
+      fetch('http://localhost:8080/api/people/' + id)
+        .then(response => response.json())
+        .then(data => {
+          this.setState({
+            contentType: 'person',
+            content: data
+          });
+        })
+        .catch(e => console.error(e));
+    }
     else if (itemKey === 'new-person') {
       this.setState({contentType: itemKey});
     }
@@ -740,7 +744,7 @@ class App extends React.Component {
               <TopBar/>
               <div id='main-content'>
                 <ProjectSummaryList projects={this.state.projects} onClick={this.handleClick}/>
-                <PersonSummaryList onClick={this.handleClick}/>
+                <PersonSummaryList people={this.state.people} onClick={this.handleClick}/>
                 <MainContent type={this.state.contentType} content={this.state.content} onClick={this.handleClick}/>
               </div>
             </div>
