@@ -780,7 +780,7 @@ class App extends React.Component {
           .then(data => {
             this.setState({
               contentType: 'person',
-              content: data._embedded.people[0]
+              content: data._embedded.people[data._embedded.people.length - 1] // In case of duplicate names, gets newest.
             });
           })
           .catch(e => console.error(e));
