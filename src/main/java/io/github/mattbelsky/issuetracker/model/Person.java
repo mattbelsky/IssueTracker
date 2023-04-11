@@ -3,7 +3,8 @@ package io.github.mattbelsky.issuetracker.model;
 import javax.persistence.*;
 import java.sql.Date;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -22,7 +23,9 @@ public class Person {
     @Column(name = "person_role")
     private String personRole;
     private String username;
-    @JsonIgnore
+    // Use @JsonProperty annotation instead of @JsonIgnore, which the guide suggests, as the latter will ignore all
+    // associated methods, both getters and setters, making it impossible to submit this property to the database.
+    @JsonProperty(access = Access.WRITE_ONLY)
     private String password;
     @Column(name = "assigned_project")
     private Integer assignedProject;
@@ -87,9 +90,9 @@ public class Person {
         this.username = username;
     }
 
-    public void setPassword(String password) { this.password = PASSWORD_ENCODER.encode(password); }
-
     public String getPassword() { return password; }
+
+    public void setPassword(String password) { this.password = PASSWORD_ENCODER.encode(password); }
 
     public Integer getAssignedProject() {
         return assignedProject;

@@ -189,7 +189,6 @@ class NewProject extends React.Component {
 /******************** PEOPLE ********************/
 
 const PersonSummary = (props) => {
-  console.log(props);
   return (
     <div className='summary-item-container' onClick={() => props.onClick('view-person', props.id)}>
       <div>{props.personName}</div>
@@ -236,24 +235,85 @@ const Person = (props) => {
   );
 };
 
-const NewPerson = () => {
-  return (
-    <div className='new-person'>
-      <form>
-        Name<br/>
-        <input type='text' name='name'/><br/>
-        Role<br/>
-        <input type='radio' name='role' value='team-member' checked/>Team Member<br/>
-        <input type='radio' name='role' value='project-lead' checked/>Project Lead<br/>
-        <input type='radio' name='role' value='manager' checked/>Manager<br/>
-        Username<br/>
-        <input type='text' name='username'/><br/>
-        E-mail<br/>
-        <input type='text' name='email'/><br/>
-        <input type='submit' value='Submit'/>
-      </form>
-    </div>
-  );
+class NewPerson extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      personName: '',
+      personRole: '',
+      username: '',
+      password: '',
+      personEmail: '',
+      createdOn: new Date(),
+      createdBy: 'Mike Holliday',
+      modifiedOn: new Date(),
+      modifiedBy: 'Mike Holliday'
+    };
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    const target = event.target;
+    const name = target.name;
+    const value = target.value;
+    this.setState({[name]: value});
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+
+    const stateArray = Object.values(this.state);
+    if (stateArray.filter(item => item === '').length > 0) {
+      alert('Missing input. Please ensure that all fields are filled out.');
+      return;
+    }
+    if (this.state.personEmail.match(/^[A-Za-z0-9.]+@[A-Za-z0-9]+.[A-Za-z0-9]{2,}$/g) === null) {
+      alert('Invalid email address.');
+      return;
+    }
+
+    fetch('http://localhost:8080/api/people', {
+      method: 'POST',
+      headers: new Headers({'Content-Type': 'application/json'}),
+      body: JSON.stringify(this.state)
+    })
+      .then(response => {
+        if (response.status === 409) {
+          alert('Duplicate entry. Try a different username or email.');
+          return;
+        }
+        this.props.onClick('view-person', this.state.personName);
+        alert('Submitted successfully!');
+      })
+      .catch(error => {
+        alert('Form submit error', error);
+        console.error(error);
+      });
+  }
+
+  render() {
+    return (
+      <div className='new-person'>
+        <form onSubmit={this.handleSubmit}>
+          Name<br/>
+          <input type='text' name='personName' onChange={this.handleChange}/><br/>
+          Role<br/>
+          <input type='radio' name='personRole' value='team member' onChange={this.handleChange}/>Team Member<br/>
+          <input type='radio' name='personRole' value='project lead' onChange={this.handleChange}/>Project Lead<br/>
+          <input type='radio' name='personRole' value='manager' onChange={this.handleChange}/>Manager<br/>
+          Username<br/>
+          <input type='text' name='username' onChange={this.handleChange}/><br/>
+          Password<br/>
+          <input type='password' name='password' onChange={this.handleChange}/><br/>
+          E-mail<br/>
+          <input type='text' name='personEmail' onChange={this.handleChange}/><br/>
+          <input type='submit' value='Submit'/>
+        </form>
+      </div>
+    );
+  }
 };
 
 /******************** ISSUES ********************/
@@ -534,7 +594,7 @@ const SubContent = (props) => {
       content = <NewIssue relatedProject={props.content} onClick={props.onClick}/>;
       break;
     case 'new-person':
-      content = <NewPerson/>;
+      content = <NewPerson onClick={props.onClick}/>;
       break;
     default:
       content = defaultContent;
@@ -712,6 +772,30 @@ class App extends React.Component {
       });
     }
     else if (itemKey === 'view-person') {
+      // If a name is returned. Should only be after a new person is added.
+      if (id.match(/[A-Za-z]+/g) !== null) {
+        let name = id.trim().replace(/ /g, '%20'); // Replaces spaces in employee name with "%20" for URL.
+        fetch('http://localhost:8080/api/people/search/findByPersonName?name=' + name)
+          .then(response => response.json())
+          .then(data => {
+            this.setState({
+              contentType: 'person',
+              content: data._embedded.people[0]
+            });
+          })
+          .catch(e => console.error(e));
+
+        // Refreshes the list of employees.
+        fetch('http://localhost:8080/api/people')
+          .then(response => response.json())
+          .then(data => {
+            this.setState({people: data._embedded.people});
+          })
+          .catch(error => console.error(error));
+        return;
+      }
+
+      // Displays the employee whose name is clicked from the list of employees.
       fetch('http://localhost:8080/api/people/' + id)
         .then(response => response.json())
         .then(data => {
