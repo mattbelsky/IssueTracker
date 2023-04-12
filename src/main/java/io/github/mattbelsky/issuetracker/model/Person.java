@@ -18,10 +18,10 @@ public class Person {
     private int personId;
     @Column(name = "person_name")
     private String personName;
-    @Column(name = "person_email")
-    private String personEmail;
-    @Column(name = "person_role")
-    private String personRole;
+    @Column(name = "email")
+    private String email;
+    @Column(name = "role")
+    private String role;
     private String username;
     // Use @JsonProperty annotation instead of @JsonIgnore, which the guide suggests, as the latter will ignore all
     // associated methods, both getters and setters, making it impossible to submit this property to the database.
@@ -38,11 +38,11 @@ public class Person {
     @Column(name = "modified_by")
     private String modifiedBy;
 
-    public Person(String personName, String personEmail, String personRole, String username, String password,
+    public Person(String personName, String email, String role, String username, String password,
                   Date createdOn, String createdBy, Date modifiedOn, String modifiedBy) {
         this.personName = personName;
-        this.personEmail = personEmail;
-        this.personRole = personRole;
+        this.email = email;
+        this.role = role;
         this.username = username;
         this.setPassword(password);
         this.createdOn = createdOn;
@@ -66,20 +66,20 @@ public class Person {
         this.personName = personName;
     }
 
-    public String getPersonEmail() {
-        return personEmail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setPersonEmail(String personEmail) {
-        this.personEmail = personEmail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public String getPersonRole() {
-        return personRole;
+    public String getRole() {
+        return role;
     }
 
-    public void setPersonRole(String personRole) {
-        this.personRole = personRole;
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public String getUsername() {

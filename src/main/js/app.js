@@ -192,7 +192,7 @@ const PersonSummary = (props) => {
   return (
     <div className='summary-item-container' onClick={() => props.onClick('view-person', props.id)}>
       <div>{props.personName}</div>
-      <div className='person-summary-role'>{props.personRole}</div>
+      <div className='person-summary-role'>{props.role}</div>
     </div>
   );
 };
@@ -211,7 +211,7 @@ class PersonSummaryList extends React.Component {
           id={personId}
           key={personId + p.personName + 'person-key'}
           personName={p.personName}
-          personRole={p.personRole}
+          role={p.role}
           onClick={this.props.onClick}/>
       );
     });
@@ -228,9 +228,9 @@ const Person = (props) => {
   return (
     <div id='person'>
       <h3>{props.content.personName}</h3>
-      <p>{props.content.personRole}</p>
+      <p>{props.content.role}</p>
       <p>{props.content.username}</p>
-      <p>{props.content.personEmail}</p>
+      <p>{props.content.email}</p>
     </div>
   );
 };
@@ -241,10 +241,10 @@ class NewPerson extends React.Component {
     super(props);
     this.state = {
       personName: '',
-      personRole: '',
+      role: '',
       username: '',
       password: '',
-      personEmail: '',
+      email: '',
       createdOn: new Date(),
       createdBy: 'Mike Holliday',
       modifiedOn: new Date(),
@@ -269,7 +269,7 @@ class NewPerson extends React.Component {
       alert('Missing input. Please ensure that all fields are filled out.');
       return;
     }
-    if (this.state.personEmail.match(/^[A-Za-z0-9.]+@[A-Za-z0-9]+.[A-Za-z0-9]{2,}$/g) === null) {
+    if (this.state.email.match(/^[A-Za-z0-9.]+@[A-Za-z0-9]+.[A-Za-z0-9]{2,}$/g) === null) {
       alert('Invalid email address.');
       return;
     }
@@ -300,15 +300,15 @@ class NewPerson extends React.Component {
           Name<br/>
           <input type='text' name='personName' onChange={this.handleChange}/><br/>
           Role<br/>
-          <input type='radio' name='personRole' value='team member' onChange={this.handleChange}/>Team Member<br/>
-          <input type='radio' name='personRole' value='project lead' onChange={this.handleChange}/>Project Lead<br/>
-          <input type='radio' name='personRole' value='manager' onChange={this.handleChange}/>Manager<br/>
+          <input type='radio' name='role' value='team member' onChange={this.handleChange}/>Team Member<br/>
+          <input type='radio' name='role' value='project lead' onChange={this.handleChange}/>Project Lead<br/>
+          <input type='radio' name='role' value='manager' onChange={this.handleChange}/>Manager<br/>
           Username<br/>
           <input type='text' name='username' onChange={this.handleChange}/><br/>
           Password<br/>
           <input type='password' name='password' onChange={this.handleChange}/><br/>
           E-mail<br/>
-          <input type='text' name='personEmail' onChange={this.handleChange}/><br/>
+          <input type='text' name='email' onChange={this.handleChange}/><br/>
           <input type='submit' value='Submit'/>
         </form>
       </div>
@@ -778,9 +778,10 @@ class App extends React.Component {
         fetch('http://localhost:8080/api/people/search/findByPersonName?name=' + name)
           .then(response => response.json())
           .then(data => {
+            let people = data._embedded.people;
             this.setState({
               contentType: 'person',
-              content: data._embedded.people[data._embedded.people.length - 1] // In case of duplicate names, gets newest.
+              content: people[people.length - 1] // In case of duplicate names, gets newest.
             });
           })
           .catch(e => console.error(e));
