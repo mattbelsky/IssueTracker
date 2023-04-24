@@ -300,9 +300,9 @@ class NewPerson extends React.Component {
           Name<br/>
           <input type='text' name='personName' onChange={this.handleChange}/><br/>
           Role<br/>
-          <input type='radio' name='role' value='team member' onChange={this.handleChange}/>Team Member<br/>
-          <input type='radio' name='role' value='project lead' onChange={this.handleChange}/>Project Lead<br/>
-          <input type='radio' name='role' value='manager' onChange={this.handleChange}/>Manager<br/>
+          <input type='radio' name='role' value='TEAM_MEMBER' onChange={this.handleChange}/>Team Member<br/>
+          <input type='radio' name='role' value='PROJECT_LEAD' onChange={this.handleChange}/>Project Lead<br/>
+          <input type='radio' name='role' value='MANAGER' onChange={this.handleChange}/>Manager<br/>
           Username<br/>
           <input type='text' name='username' onChange={this.handleChange}/><br/>
           Password<br/>
@@ -543,7 +543,7 @@ const TopBar = (props) => {
   return (
     <div id='top-bar'>
       <span>Welcome {props.name}</span>
-      <span id='logout'>Logout</span>
+      <a href='/logout' id='logout'>Logout</a>
     </div>
   );
 };

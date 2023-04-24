@@ -13,4 +13,9 @@ public class MainController {
         response.setHeader("Content-Type","text/html");
         return "index";
     }
+
+    @GetMapping("login")
+    public String getLogin() {
+        return "login";
+    }
 }
