@@ -2,6 +2,7 @@ package io.github.mattbelsky.issuetracker.security;
 
 import io.github.mattbelsky.issuetracker.model.Person;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -17,7 +18,8 @@ import static io.github.mattbelsky.issuetracker.security.Role.PROJECT_LEAD;
 public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
     // spring.data.rest.base-path in application.properties is only for Spring Data REST
-    private final String BASE_PATH = "/api";
+    @Value("${spring.data.rest.base-path}")
+    private String BASE_PATH;
     private final String PEOPLE = "/people/**";
     private final String PROJECTS = "/projects/**";
     private final String ISSUES = "/issues/**";

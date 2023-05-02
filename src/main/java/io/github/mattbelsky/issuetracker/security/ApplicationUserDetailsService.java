@@ -3,6 +3,7 @@ package io.github.mattbelsky.issuetracker.security;
 import io.github.mattbelsky.issuetracker.model.Person;
 import io.github.mattbelsky.issuetracker.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,11 +20,15 @@ public class ApplicationUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Person person = personRepository.findByUsername(username);
         String role = person.getRole().toUpperCase().replace(" ", "_");
-        UserDetails user = User.builder()
+        User user = (User) User.builder()
                 .username(person.getUsername())
                 .password(person.getPassword())
                 .roles(role)
                 .build();
         return user;
+    }
+
+    public User getAuthenticationPrincipal() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

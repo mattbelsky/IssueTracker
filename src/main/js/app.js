@@ -542,7 +542,7 @@ class NewIssue extends React.Component {
 const TopBar = (props) => {
   return (
     <div id='top-bar'>
-      <span>Welcome {props.name}</span>
+      Welcome {props.user}.
       <a href='/logout' id='logout'>Logout</a>
     </div>
   );
@@ -613,10 +613,10 @@ const LoginDialog = (props) => {
   return (
     <div id='login'>
       <form>
-        Email:<br/>
-        <input type='text'/><br/>
+        Username:<br/>
+        <input type='text' name='username'/><br/>
         Password:<br/>
-        <input type='text'/><br/>
+        <input type='text' name='password'/><br/>
         <input type='submit' value='Submit'/>
         <input type='button' value='Cancel' onClick={props.onClick}/>
       </form>
@@ -640,7 +640,8 @@ class App extends React.Component {
       projects: [],
       people: [],
       issues: [],
-      activeProject: ''
+      activeProject: '',
+      activeUser: ''
     };
     this.toggleSidebar = this.toggleSidebar.bind(this);
     this.toggleSummaryCol = this.toggleSummaryCol.bind(this);
@@ -655,6 +656,9 @@ class App extends React.Component {
     fetch('http://localhost:8080/api/people')
       .then(response => response.json())
       .then(data => this.setState({people: data._embedded.people}));
+    fetch('http://localhost:8080/user')
+      .then(response => response.json())
+      .then(user => this.setState({activeUser: user.username}));
   }
 
   toggleSidebar() {
@@ -826,7 +830,7 @@ class App extends React.Component {
               onClickSidebar={this.toggleSidebar} toggle={this.state.sidebar}
               onClickMenuItem={this.toggleSummaryCol}/>
             <div id={'main-' + this.state.mainWidth}>
-              <TopBar/>
+              <TopBar user={this.state.activeUser}/>
               <div id='main-content'>
                 <ProjectSummaryList projects={this.state.projects} onClick={this.handleClick}/>
                 <PersonSummaryList people={this.state.people} onClick={this.handleClick}/>
