@@ -101,6 +101,8 @@ const Project = (props) => {
           <td>{props.content.modifiedBy}</td>
         </tr>
       </table>
+      <input type='button' value='Delete Project'
+        onClick={() => props.onClick('delete-project', props.content._links.self.href.match(/\w+$/)[0])}/>
     </div>
   );
 
@@ -120,7 +122,7 @@ class NewProject extends React.Component {
       targetEndDate: new Date().toISOString().slice(0,10),
       startDate: new Date(),
       createdOn: new Date(),
-      createdBy: 'Mike Holliday',
+      createdBy: props.activeUser,
       validProjectName: true,
       validDate: true
     };
@@ -574,27 +576,27 @@ const SubContent = (props) => {
 
   switch (props.type) {
     case 'issues':
-      content = <IssueList content={props.content} onClick={props.onClick}/>;
+      content = <IssueList content={props.content} activeUser={props.activeUser} onClick={props.onClick}/>;
       console.log(props);
       break;
     case 'issue':
-      content = <Issue content={props.content} onClick={props.onClick}/>;
+      content = <Issue content={props.content} activeUser={props.activeUser} onClick={props.onClick}/>;
       console.log(props);
       break;
     case 'project':
-      content = <Project content={props.content}/>;
+      content = <Project content={props.content} activeUser={props.activeUser} onClick={props.onClick}/>;
       break;
     case 'person':
-      content = <Person content={props.content}/>;
+      content = <Person content={props.content} activeUser={props.activeUser}/>;
       break;
     case 'new-project':
-      content = <NewProject onClick={props.onClick}/>;
+      content = <NewProject activeUser={props.activeUser} onClick={props.onClick}/>;
       break;
     case 'new-issue':
-      content = <NewIssue relatedProject={props.content} onClick={props.onClick}/>;
+      content = <NewIssue relatedProject={props.content} activeUser={props.activeUser} onClick={props.onClick}/>;
       break;
     case 'new-person':
-      content = <NewPerson onClick={props.onClick}/>;
+      content = <NewPerson activeUser={props.activeUser} onClick={props.onClick}/>;
       break;
     default:
       content = defaultContent;
@@ -604,7 +606,7 @@ const SubContent = (props) => {
 };
 
 const MainContent = (props) => {
-  return <SubContent type={props.type} content={props.content} onClick={props.onClick}/>;
+  return <SubContent type={props.type} content={props.content} activeUser={props.activeUser} onClick={props.onClick}/>;
 };
 
 /******************** LOGIN ********************/
@@ -714,6 +716,29 @@ class App extends React.Component {
       else {
         this.setState({contentType: 'project', content: project(projectName)});
       }
+    }
+    else if (itemKey.includes('delete-project')) {
+      fetch('http://localhost:8080/api/projects/' + id, {
+        method: 'DELETE',
+        headers: new Headers({'Content-Type': 'application/json'}),
+        body: JSON.stringify(this.state)
+      }).
+        then(response => {
+          fetch('http://localhost:8080/api/projects')
+            .then(response => response.json())
+            .then(data => {
+              this.setState({
+                contentType: '',
+                content: '',
+                projects: data._embedded.projects
+              });
+            });
+          alert('Project deleted.');
+        })
+        .catch(error => {
+          alert(error);
+          console.error(error);
+        });
     }
     else if (itemKey.includes('view-issues')) {
       fetch('http://localhost:8080/api/issues/search/findByRelatedProject?projectId=' + id)
@@ -834,7 +859,12 @@ class App extends React.Component {
               <div id='main-content'>
                 <ProjectSummaryList projects={this.state.projects} onClick={this.handleClick}/>
                 <PersonSummaryList people={this.state.people} onClick={this.handleClick}/>
-                <MainContent type={this.state.contentType} content={this.state.content} onClick={this.handleClick}/>
+                <MainContent
+                  type={this.state.contentType}
+                  content={this.state.content}
+                  activeUser={this.state.activeUser}
+                  onClick={this.handleClick}
+                />
               </div>
             </div>
           </div>
