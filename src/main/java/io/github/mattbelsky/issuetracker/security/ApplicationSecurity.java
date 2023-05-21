@@ -46,11 +46,11 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
                 // People
                 .antMatchers(HttpMethod.POST, BASE_PATH + PEOPLE).hasRole(MANAGER.name())
                 .antMatchers(HttpMethod.GET, BASE_PATH + PEOPLE).hasAnyRole(MANAGER.name(), PROJECT_LEAD.name())
-                .antMatchers(HttpMethod.PUT, BASE_PATH + PEOPLE).hasRole(MANAGER.name())
+                .antMatchers(HttpMethod.PATCH, BASE_PATH + PEOPLE).hasRole(MANAGER.name())
                 .antMatchers(HttpMethod.DELETE, BASE_PATH + PEOPLE).hasRole(MANAGER.name())
                 // Projects
                 .antMatchers(HttpMethod.POST, BASE_PATH + PROJECTS).hasRole(MANAGER.name())
-                .antMatchers(HttpMethod.PUT, BASE_PATH + PROJECTS).hasRole(MANAGER.name())
+                .antMatchers(HttpMethod.PATCH, BASE_PATH + PROJECTS).hasRole(MANAGER.name())
                 .antMatchers(HttpMethod.DELETE, BASE_PATH + PROJECTS).hasRole(MANAGER.name())
                 // Issues
                 .antMatchers(HttpMethod.DELETE, BASE_PATH + ISSUES).hasAnyRole(MANAGER.name(), PROJECT_LEAD.name())

@@ -4,6 +4,10 @@ import '../resources/static/main.css';
 
 // const { useState, useEffect } = React; // necessary in Codepen, otherwise can use import statement
 
+// For correcting dates that are stored as UTC but returned in the local timezone, giving the wrong date.
+// To be combined with a timezone offset fixer in the element(s) below. Milliseconds/day.
+const MS_IN_DAY = 24 * 60 * 60 * 1000;
+
 const Close = (props) => <span className='close' id={props.id}
                                onClick={props.onClick}>X</span>;
 
@@ -23,7 +27,7 @@ const ProjectSummary = (props) => {
       </a>
       <span style={{float: 'right'}}>
         <a href='javascript:;' id='view-issues'
-          onClick={() => { props.onClick('view-issues', props.id)}}>
+          onClick={() => props.onClick('view-issues', props.id)}>
           view issues
         </a>
       </span>
@@ -61,16 +65,39 @@ class ProjectSummaryList extends React.Component {
 
 const Project = (props) => {
 
+  const [needsUpdate, setNeedsUpdate] = useState(false);
+  const [targetFinish, setTargetFinish] = useState(props.content.targetEndDate);
+
+  const projectId = props.content._links.self.href.match(/\w+$/)[0];
+
+  // Simply put, the date submitted to the database is often not the one displayed upon retrieval. This is because the
+  // date value passes through three different types of objects on its way: JavaScript Date, java.sql.date, and SQL DATE.
+  // JS Date assumes the date is in UTC and displays it in the local timezone, causing the problem.
+  const adjustDates = (prop) => {
+    let date = prop !== null ? new Date(prop) : "Invalid Date";
+    if (date !== "Invalid Date") {
+      let timezoneAdjustment = date.getTimezoneOffset() * 60 * 1000 + MS_IN_DAY
+      date = new Date(date.getTime() + timezoneAdjustment);
+      return date.toDateString();
+    }
+    else return '';
+  }
+  const startDate = adjustDates(props.content.startDate);
+  const targetEndDate = adjustDates(props.content.targetEndDate);
+  const actualEndDate = adjustDates(props.content.actualEndDate);
+  const createdOn = adjustDates(props.content.createdOn);
+  const modifiedOn = adjustDates(props.content.modifiedOn);
+
   const unfinished = (
     <div>
       <h2>{props.content.projectName}</h2>
       <div>
         Start Date<br/>
-        {props.content.startDate}
+        {startDate}
       </div>
       <div>
         Target End Date<br/>
-        {props.content.targetEndDate}
+        {targetEndDate}
       </div>
     </div>
   );
@@ -78,7 +105,7 @@ const Project = (props) => {
   const finished = (
     <div>
       Actual End Date<br/>
-      {props.content.actualEndDate}
+      {actualEndDate}
     </div>
   );
 
@@ -92,24 +119,65 @@ const Project = (props) => {
         </tr>
         <tr>
           <td>Created</td>
-          <td>{props.content.createdOn}</td>
+          <td>{createdOn}</td>
           <td>{props.content.createdBy}</td>
         </tr>
         <tr>
           <td>Last Modified</td>
-          <td>{props.content.modifiedOn}</td>
+          <td>{modifiedOn}</td>
           <td>{props.content.modifiedBy}</td>
         </tr>
       </table>
+      <input type='button' value='Update Project' onClick={() => setNeedsUpdate(true)}/>
       <input type='button' value='Delete Project'
-        onClick={() => props.onClick('delete-project', props.content._links.self.href.match(/\w+$/)[0])}/>
+        onClick={() => props.onClick('delete-project', projectId)}/>
     </div>
   );
 
+  const update = (
+    <form onSubmit={handleSubmit}>
+      <label>Target End Date</label>
+      <input type='date' id='target-end-date' onChange={e => setTargetFinish(new Date(e.target.value))}/><br/>
+      <input type='submit' value='Update'/>
+    </form>
+  );
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    console.log(typeof targetFinish + " " + targetFinish);
+    console.log(JSON.stringify({
+      targetEndDate: targetFinish,
+      modifiedOn: new Date()
+    }));
+    if (new Date(targetFinish) < new Date()) {
+      alert('Target end date must be today or later.');
+      return;
+    }
+    fetch('http://localhost:8080/api/projects/' + projectId, {
+      method: 'PATCH',
+      headers: new Headers({'Content-Type': 'application/json'}),
+      body: JSON.stringify({
+        targetEndDate: targetFinish,
+        modifiedOn: new Date()
+      })
+    })
+      .then(response => {
+        setNeedsUpdate(false);
+        alert('Submitted successfully!');
+        props.onClick('update-project', projectId);
+      })
+      .catch(error => {
+        alert('Form submit error', error);
+        console.error(error);
+      });
+  }
+
   if (props.finished) {
     return <div id='project'>{unfinished}{finished}{modifications}</div>;
+  } else if (needsUpdate) {
+    return <div id='project'>{unfinished}{modifications}{update}</div>;
   } else {
-    return <div id='project'>{unfinished}{modifications}</div>
+    return <div id='project'>{unfinished}{modifications}</div>;
   }
 };
 
@@ -699,7 +767,11 @@ class App extends React.Component {
   handleClick(itemKey, id) {
     const issuesList = document.getElementById('issues-list');
 
-    if (itemKey.includes('view-project')) {
+    /***** PROJECTS *****/
+    if (itemKey === 'new-project') {
+      this.setState({contentType: itemKey});
+    }
+    else if (itemKey.includes('view-project')) {
       let projectName = itemKey.match(/[A-Za-z0-9_ ]+(?=view-project)/)[0];
       const project = (name) => this.state.projects.find(p => p.projectName === name);
       if (project(projectName) === undefined) {
@@ -716,6 +788,17 @@ class App extends React.Component {
       else {
         this.setState({contentType: 'project', content: project(projectName)});
       }
+    }
+    else if (itemKey.includes('update-project')) {
+      fetch('http://localhost:8080/api/projects/' + id)
+        .then(response => response.json())
+        .then(project => {
+          this.setState({
+            contentType: 'project',
+            content: project
+          });
+          console.log(project);
+        });
     }
     else if (itemKey.includes('delete-project')) {
       fetch('http://localhost:8080/api/projects/' + id, {
@@ -740,6 +823,7 @@ class App extends React.Component {
           console.error(error);
         });
     }
+    /***** ISSUES *****/
     else if (itemKey.includes('view-issues')) {
       fetch('http://localhost:8080/api/issues/search/findByRelatedProject?projectId=' + id)
         .then(response => response.json())
@@ -791,15 +875,13 @@ class App extends React.Component {
       })
       .catch(error => alert(error));
     }
-    else if (itemKey === 'new-project') {
-      this.setState({contentType: itemKey});
-    }
     else if (itemKey === 'new-issue') {
       this.setState({
         contentType: itemKey,
         content: id
       });
     }
+    /***** PEOPLE *****/
     else if (itemKey === 'view-person') {
       // If a name is returned. Should only be after a new person is added.
       if (id.match(/[A-Za-z]+/g) !== null) {
