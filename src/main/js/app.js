@@ -403,6 +403,7 @@ const IssueSummary = (props) => {
 
 const IssueList = (props) => {
 
+  console.log(props);
   let issueSummaries = [];
   let relatedProject = props.content[0].relatedProject;
 
@@ -423,10 +424,7 @@ const IssueList = (props) => {
     });
   }
 
-  console.log(props);
-  console.log(issueSummaries);
   preload(props.content);
-  console.log(relatedProject);
 
   return (
     <div id='issues-list'>
@@ -439,7 +437,43 @@ const IssueList = (props) => {
 const Issue = (props) => {
 
   console.log(props);
-  return (
+  const [needsUpdate, setNeedsUpdate] = useState(false);
+  const [assignedTo, setAssignedTo] = useState({
+    employeeId: props.content.assignedTo,
+    employeeName: props.content.assignedTo !== null ?
+      props.people.find(person => person._links.self.href.match(/\w+$/)[0] === props.content.assignedTo).personName :
+      ''
+  });
+  const [issueSummary, setIssueSummary] = useState(props.content.issueSummary);
+  const [issueDescription, setIssueDescription] = useState(props.content.issueDescription);
+  const [targetResolutionDate, setTargetResolutionDate] = useState(props.content.targetResolutionDate);
+
+  const issueId = props.content._links.self.href.match(/\w+$/)[0];
+  const employees = buildEmployeesList();
+
+  function buildEmployeesList() {
+    let employeesList = [];
+    props.people.forEach(person => {
+      let personId = person._links.self.href.match(/\w+$/)[0];
+      let personName = person.personName;
+      employeesList.push(<option key={personId + personName} value={personId}>{personName}</option>);
+    });
+    return employeesList;
+  };
+
+  function findEmployeeIdByName(name) {
+    let employee = props.people.find(person => person.personName === name);
+    console.log(props.people.find(person => person.personName === name));
+    return employee._links.self.href.match(/\w+$/)[0];
+  }
+
+  function findEmployeeNameById(id) {
+    let employee = props.people.find(person => person._links.self.href.match(/\w+$/)[0] === id);
+    console.log(props.people.find(person => person._links.self.href.match(/\w+$/)[0] === id));
+    return employee.personName;
+  }
+
+  const issue = (
     <div id='issue'>
       <h2>{props.content.relatedProject}</h2>
       <span>&#10006;</span>
@@ -452,7 +486,7 @@ const Issue = (props) => {
       <p>{props.content.issueDescription}</p>
       <div>
         <h3>Assigned To</h3>
-        {props.content.assignedTo}
+        {assignedTo.employeeName}
       </div>
       <div>{props.content.resolutionSummary === null ? '' : props.resolutionSummary}</div>
       <div>
@@ -495,9 +529,64 @@ const Issue = (props) => {
           </tbody>
         </table>
       </div>
-      <button type='button' onClick={() => props.onClick('delete-issue', props.content._links.self.href.match(/\w+$/)[0])}>Delete</button>
+      <button type='button' onClick={() => setNeedsUpdate(true)}>Update Project</button>
+      <button type='button' onClick={() => props.onClick('delete-issue', issueId)}>Delete Project</button>
     </div>
   );
+
+  const update = (
+    <form onSubmit={handleSubmit}>
+      <label>Issue summary</label>
+      <input type='text' id='issue-summary' onChange={e => setIssueSummary(e.target.value)}/>
+      <br/>
+      <label>Assigned to</label>
+      <select id='assigned-to' onChange={e => setAssignedTo({
+        employeeId: findEmployeeIdByName(e.target.value),
+        employeeName: e.target.value})}>{employees}</select>
+      <br/>
+      <label>Issue description</label>
+      <input type='text' id='issue-description' onChange={e => setIssueDescription(e.target.value)}/>
+      <br/>
+      <label>Target resolution date</label>
+      <input type='date' id='target-resolution-date' value={targetResolutionDate}
+        onChange={e => setTargetResolutionDate(new Date(e.target.value))}/>
+      <br/>
+      <input type='submit' value='Update'/>
+    </form>
+  );
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    if (new Date(targetResolutionDate) < new Date()) {
+      alert('Target end date must be today or later.');
+      return;
+    }
+    fetch('http://localhost:8080/api/issues/' + issueId, {
+      method: 'PATCH',
+      headers: new Headers({'Content-Type': 'application/json'}),
+      body: JSON.stringify({
+        assignedTo: assignedTo.employeeId,
+        issueSummary: issueSummary,
+        issueDescription: issueDescription,
+        targetResolutionDate: targetResolutionDate,
+        modifiedOn: new Date()
+      })
+    })
+      .then(response => {
+        setNeedsUpdate(false);
+        alert('Submitted successfully!');
+        props.onClick('update-issue', issueId);
+      })
+      .catch(error => {
+        alert('Form submit error', error);
+        console.error(error);
+      });
+  }
+
+  if (!needsUpdate)
+    return <div>{issue}</div>;
+  else
+    return <div>{issue}{update}</div>;
 };
 
 //const NewIssue = () => {
@@ -648,7 +737,7 @@ const SubContent = (props) => {
       console.log(props);
       break;
     case 'issue':
-      content = <Issue content={props.content} activeUser={props.activeUser} onClick={props.onClick}/>;
+      content = <Issue content={props.content} people={props.people} activeUser={props.activeUser} onClick={props.onClick}/>;
       console.log(props);
       break;
     case 'project':
@@ -674,7 +763,15 @@ const SubContent = (props) => {
 };
 
 const MainContent = (props) => {
-  return <SubContent type={props.type} content={props.content} activeUser={props.activeUser} onClick={props.onClick}/>;
+  return (
+    <SubContent
+      type={props.type}
+      content={props.content}
+      people={props.people}
+      activeUser={props.activeUser}
+      onClick={props.onClick}
+    />
+  );
 };
 
 /******************** LOGIN ********************/
@@ -921,7 +1018,7 @@ class App extends React.Component {
     else if (itemKey === 'new-person') {
       this.setState({contentType: itemKey});
     }
-    console.log('\'' + itemKey + '\' clicked');
+    console.log('\'' + itemKey + '\' clicked\nid: ' + id);
   }
 
   logIn() {
@@ -929,6 +1026,7 @@ class App extends React.Component {
   }
 
   render() {
+    console.log(this.state.people);
     const isLoggedIn = this.state.isLoggedIn;
     if (isLoggedIn) {
       return (
@@ -944,6 +1042,7 @@ class App extends React.Component {
                 <MainContent
                   type={this.state.contentType}
                   content={this.state.content}
+                  people={this.state.people}
                   activeUser={this.state.activeUser}
                   onClick={this.handleClick}
                 />
