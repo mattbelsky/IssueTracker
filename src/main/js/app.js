@@ -295,14 +295,92 @@ class PersonSummaryList extends React.Component {
 }
 
 const Person = (props) => {
-  return (
+
+  console.log(props);
+  const [needsUpdate, setNeedsUpdate] = useState(false);
+  const [personName, setPersonName] = useState(props.content.personName);
+  const [role, setRole] = useState(props.content.role);
+  const [email, setEmail] = useState(props.content.email);
+
+  const personId = props.content._links.self.href.match(/\w+$/)[0];
+
+  const person = (
     <div id='person'>
       <h3>{props.content.personName}</h3>
       <p>{props.content.role}</p>
       <p>{props.content.username}</p>
       <p>{props.content.email}</p>
+      <input type='button' value='Update Person' onClick={() => setNeedsUpdate(true)}/>
+      <input type='button' value='Delete Person'
+        onClick={() => props.onClick('delete-person', personId)}/>
     </div>
   );
+
+  const update = (
+    <form onSubmit={handleSubmit}>
+      <label>Name</label>
+      <input type='text' onChange={e => handleChange(e, 'personName')}/><br/>
+      <label>Email</label>
+      <input type='text' onChange={e => handleChange(e, 'email')}/><br/>
+      <label>Role</label><br/>
+      <input type='radio' name='role' value='TEAM_MEMBER' onChange={e => setRole(e.target.value)}/>Team Member<br/>
+      <input type='radio' name='role' value='PROJECT_LEAD' onChange={e => setRole(e.target.value)}/>Project Lead<br/>
+      <input type='radio' name='role' value='MANAGER' onChange={e => setRole(e.target.value)}/>Manager<br/>
+      <input type='submit' value='Update'/>
+    </form>
+  );
+
+  // Reassigns default values in case textual form data is added then removed. Changes state otherwise.
+  // Changing state in handleSubmit() & calling fetch() results in two asynchronous operations firing and seeming to
+  // cause problems rather than occurring sequentially as desired. This function avoids any problems.
+  function handleChange(event, property) {
+    let value = event.target.value;
+    switch(property) {
+      case 'personName':
+        setPersonName(value.length > 0 ? value : props.content.personName);
+        break;
+      case 'email':
+         setEmail(value.length > 0 ? value : props.content.email);
+         break;
+      default:
+         return;
+    }
+  }
+
+  function handleSubmit(event) {
+
+    event.preventDefault();
+    if (email.match(/^[A-Za-z0-9.]+@[A-Za-z0-9]+.[A-Za-z0-9]{2,}$/g) === null) {
+      alert('Invalid email address.');
+      return;
+    }
+
+    fetch('http://localhost:8080/api/people/' + personId, {
+      method: 'PATCH',
+      headers: new Headers({'Content-Type': 'application/json'}),
+      body: JSON.stringify({
+        personName: personName,
+        email: email,
+        role: role,
+        modifiedOn: new Date(),
+        modifiedBy: props.activeUser
+      })
+    })
+      .then(response => {
+        setNeedsUpdate(false);
+        alert('Submitted successfully!');
+        props.onClick('update-person', personId);
+      })
+      .catch(error => {
+        alert('Form submit error', error);
+        console.error(error);
+      });
+  }
+
+  if (!needsUpdate)
+    return <div>{person}</div>;
+  else
+    return <div>{person}{update}</div>;
 };
 
 class NewPerson extends React.Component {
@@ -530,8 +608,8 @@ const Issue = (props) => {
           </tbody>
         </table>
       </div>
-      <button type='button' onClick={() => setNeedsUpdate(true)}>Update Project</button>
-      <button type='button' onClick={() => props.onClick('delete-issue', issueId)}>Delete Project</button>
+      <button type='button' onClick={() => setNeedsUpdate(true)}>Update Issue</button>
+      <button type='button' onClick={() => props.onClick('delete-issue', issueId)}>Delete Issue</button>
     </div>
   );
 
@@ -576,7 +654,7 @@ const Issue = (props) => {
       .then(response => {
         setNeedsUpdate(false);
         alert('Submitted successfully!');
-        props.onClick('update-issue', issueId);
+        props.onClick('view-issue', issueId);
       })
       .catch(error => {
         alert('Form submit error', error);
@@ -745,7 +823,7 @@ const SubContent = (props) => {
       content = <Project content={props.content} activeUser={props.activeUser} onClick={props.onClick}/>;
       break;
     case 'person':
-      content = <Person content={props.content} activeUser={props.activeUser}/>;
+      content = <Person content={props.content} activeUser={props.activeUser} onClick={props.onClick}/>;
       break;
     case 'new-project':
       content = <NewProject activeUser={props.activeUser} onClick={props.onClick}/>;
@@ -1015,6 +1093,48 @@ class App extends React.Component {
           });
         })
         .catch(e => console.error(e));
+    }
+    else if (itemKey === 'update-person') {
+      // Displays the updated employee information.
+      fetch('http://localhost:8080/api/people/' + id)
+        .then(response => response.json())
+        .then(data => {
+          this.setState({
+            contentType: 'person',
+            content: data
+          });
+        })
+        .catch(e => console.error(e));
+      // Refreshes the list of employees.
+      fetch('http://localhost:8080/api/people')
+        .then(response => response.json())
+        .then(data => {
+          this.setState({people: data._embedded.people});
+        })
+        .catch(error => console.error(error));
+    }
+    else if (itemKey === 'delete-person') {
+      fetch('http://localhost:8080/api/people/' + id, {
+        method: 'DELETE',
+        headers: new Headers({'Content-Type': 'application/json'}),
+        body: JSON.stringify(this.state)
+      }).
+        then(response => {
+          fetch('http://localhost:8080/api/people')
+            .then(response => response.json())
+            .then(data => {
+              this.setState({
+                contentType: '',
+                content: '',
+                people: data._embedded.people
+              });
+            });
+          alert('Person deleted.');
+        })
+        .catch(error => {
+          alert(error);
+          console.error(error);
+        });
     }
     else if (itemKey === 'new-person') {
       this.setState({contentType: itemKey});
