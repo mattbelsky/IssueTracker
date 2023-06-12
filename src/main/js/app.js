@@ -546,15 +546,17 @@ const Issue = (props) => {
     return employeesList;
   };
 
-  function findEmployeeIdByName(name) {
-    let employee = props.people.find(person => person.personName === name);
-    console.log(props.people.find(person => person.personName === name));
-    return employee._links.self.href.match(/\w+$/)[0];
-  }
+//  function findEmployeeIdByName(name) {
+//    console.log(name);
+//    let employee = props.people.find(person => person.personName === name);
+//    console.log(props.people.find(person => person.personName === name));
+//    return employee._links.self.href.match(/\w+$/)[0];
+//  }
 
+  // Beware strict type matching. It causes an error here, thus I replaced "===" with "==".
   function findEmployeeNameById(id) {
-    let employee = props.people.find(person => person._links.self.href.match(/\w+$/)[0] === id);
-    console.log(props.people.find(person => person._links.self.href.match(/\w+$/)[0] === id));
+    let employee = props.people.find(person => person._links.self.href.match(/\w+$/)[0] == id);
+    console.log(props.people.find(person => person._links.self.href.match(/\w+$/)[0] == id));
     return employee.personName;
   }
 
@@ -571,7 +573,7 @@ const Issue = (props) => {
       <p>{props.content.issueDescription}</p>
       <div>
         <h3>Assigned To</h3>
-        {assignedTo.employeeName}
+        {props.content.assignedTo !== null ? findEmployeeNameById(props.content.assignedTo) : ''}
       </div>
       <div>{props.content.resolutionSummary === null ? '' : props.resolutionSummary}</div>
       <div>
@@ -626,8 +628,8 @@ const Issue = (props) => {
       <br/>
       <label>Assigned to</label>
       <select id='assigned-to' onChange={e => setAssignedTo({
-        employeeId: findEmployeeIdByName(e.target.value),
-        employeeName: e.target.value})}>{employees}</select>
+        employeeId: e.target.value,
+        employeeName: findEmployeeNameById(e.target.value)})}>{employees}</select>
       <br/>
       <label>Issue description</label>
       <input type='text' id='issue-description' onChange={e => setIssueDescription(e.target.value)}/>
