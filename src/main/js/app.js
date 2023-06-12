@@ -438,10 +438,11 @@ const Issue = (props) => {
 
   console.log(props);
   const [needsUpdate, setNeedsUpdate] = useState(false);
+  // Beware type mismatch causing an error in the find() function. This is why I use "==" rather than "===".
   const [assignedTo, setAssignedTo] = useState({
     employeeId: props.content.assignedTo,
     employeeName: props.content.assignedTo !== null ?
-      props.people.find(person => person._links.self.href.match(/\w+$/)[0] === props.content.assignedTo).personName :
+      props.people.find(person => person._links.self.href.match(/\w+$/)[0] == props.content.assignedTo).personName :
       ''
   });
   const [issueSummary, setIssueSummary] = useState(props.content.issueSummary);
