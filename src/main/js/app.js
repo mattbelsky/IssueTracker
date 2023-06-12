@@ -66,6 +66,7 @@ class ProjectSummaryList extends React.Component {
 const Project = (props) => {
 
   const [needsUpdate, setNeedsUpdate] = useState(false);
+  const [projectName, setProjectName] = useState(props.content.projectName);
   const [targetFinish, setTargetFinish] = useState(props.content.targetEndDate);
 
   const projectId = props.content._links.self.href.match(/\w+$/)[0];
@@ -136,16 +137,20 @@ const Project = (props) => {
 
   const update = (
     <form onSubmit={handleSubmit}>
+      <label>Project Name</label><br/>
+      <input type='text' onChange={e => setProjectName(e.target.value.length > 0 ? e.target.value : props.content.projectName)}/><br/>
       <label>Target End Date</label>
       <input type='date' id='target-end-date' onChange={e => setTargetFinish(new Date(e.target.value))}/><br/>
       <input type='submit' value='Update'/>
     </form>
   );
 
+
   function handleSubmit(event) {
     event.preventDefault();
     console.log(typeof targetFinish + " " + targetFinish);
     console.log(JSON.stringify({
+      projectName: projectName,
       targetEndDate: targetFinish,
       modifiedOn: new Date()
     }));
@@ -157,6 +162,7 @@ const Project = (props) => {
       method: 'PATCH',
       headers: new Headers({'Content-Type': 'application/json'}),
       body: JSON.stringify({
+        projectName: projectName,
         targetEndDate: targetFinish,
         modifiedOn: new Date()
       })
@@ -975,6 +981,9 @@ class App extends React.Component {
           });
           console.log(project);
         });
+      fetch("http://localhost:8080/api/projects")
+        .then(response => response.json())
+        .then(data => this.setState({projects: data._embedded.projects}));
     }
     else if (itemKey.includes('delete-project')) {
       fetch('http://localhost:8080/api/projects/' + id, {
